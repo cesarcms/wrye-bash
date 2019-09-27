@@ -311,7 +311,7 @@ class ImportFactions(_APreserver):
 
     def _parse_csv_sources(self, progress):
         fact_parser = super(ImportFactions, self)._parse_csv_sources(progress)
-        self._process_csv_sources(fact_parser.type_id_factions)
+        self._process_csv_sources(fact_parser.id_stored_info)
 
 #------------------------------------------------------------------------------
 class ImportScripts(_APreserver):
