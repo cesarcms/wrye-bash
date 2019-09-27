@@ -705,7 +705,8 @@ class ImportRelations(_APreserver):
         factionRelations = self._parse_sources(progress, parser=FactionRelations)
         if not factionRelations: return
         #--Finish
-        for fid, relations in factionRelations.id_relations.iteritems():
+        faction_dict = factionRelations.id_stored_info[b'FACT']
+        for fid, relations in faction_dict.iteritems():
             if fid and (
                     fid[0] is not None and fid[0] in self.patchFile.loadSet):
                 filteredRelations = [relation for relation in relations if
