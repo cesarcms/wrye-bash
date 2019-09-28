@@ -698,6 +698,7 @@ class ImportRelations(_APreserver):
     def __init__(self, p_name, p_file, p_sources):
         super(ImportRelations, self).__init__(p_name, p_file, p_sources)
         self.id_data = {}  #--[(otherLongid0,disp0),(...)] =
+        self.id_deleted = {} # Tracks deleted relations, see FactionRelations
         # id_relations[mainLongid]. # WAS id_relations -renamed for _buildPatch
 
     def initData(self,progress):
@@ -705,6 +706,7 @@ class ImportRelations(_APreserver):
         factionRelations = self._parse_sources(progress, parser=FactionRelations)
         if not factionRelations: return
         #--Finish
+        self.id_deleted = factionRelations.id_deleted
         faction_dict = factionRelations.id_stored_info[b'FACT']
         for fid, relations in faction_dict.iteritems():
             if fid and (
@@ -742,28 +744,49 @@ class ImportRelations(_APreserver):
 
     def _inner_loop(self, keep, records, top_mod_rec, type_count):
         id_data, set_id_data = self.id_data, set(self.id_data)
+        rel_attrs = bush.game.relations_attrs
         for record in records:
             fid = record.fid
             if fid in set_id_data:
                 newRelations = set(id_data[fid])
-                curRelations = set(
-                    (x.faction, x.mod) for x in record.relations)
-                changed = newRelations - curRelations
-                if not changed: continue
+                curRelations = set(tuple(getattr(r, a) for a in rel_attrs)
+                                   for r in record.relations)
                 doKeep = False
-                for faction, disp in changed:
+                # Preserve changed relations and create new relations for the
+                # added ones that have been merged
+                for changed_attrs in newRelations - curRelations:
+                    # The target faction is always first, for all games
+                    faction = changed_attrs[0]
                     for entry in record.relations:
                         if entry.faction == faction:
-                            if entry.mod != disp:
-                                entry.mod = disp
-                                doKeep = True
-                                keep(fid)
-                            break
+                            for rel_attr, rel_val in zip(rel_attrs,
+                                                         changed_attrs):
+                                # This is a change, preserve the latest value
+                                if getattr(entry, rel_attr) != rel_val:
+                                    setattr(entry, rel_attr, rel_val)
+                                    doKeep = True
+                            if doKeep:
+                                break
                     else:
+                        # This is an addition, merge it into the result
                         entry = MelObject()
-                        entry.faction = faction
-                        entry.mod = disp
+                        for rel_attr, rel_val in zip(rel_attrs, changed_attrs):
+                            setattr(entry, rel_attr, rel_val)
                         record.relations.append(entry)
+                        doKeep = True
+                # Look for deleted relations that have been merged and remove
+                # them from the final result
+                for del_candidate in self.id_deleted[fid]:
+                    # Need to check by faction fid, since deletion must have
+                    # priority over changed values
+                    new_relations = filter(
+                        lambda r: r.faction != del_candidate.faction,
+                        record.relations)
+                    if record.relations != new_relations:
+                        # We removed something, make sure to keep the record
+                        # However, we don't want to terminate iteration! We may
+                        # have to remove more than one relation
+                        record.relations = new_relations
                         doKeep = True
                 if doKeep:
                     type_count[top_mod_rec] += 1

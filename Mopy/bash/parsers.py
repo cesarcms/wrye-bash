@@ -1098,6 +1098,7 @@ class FactionRelations(_PBashParser):
     and CSV, and uses two passes to do so. Also tracks newly introduced
     relations that get deleted by a later plugin in id_deleted if called from
     a patcher."""
+    cls_rel_attrs = bush.game.relations_attrs
 
     def __init__(self):
         super(FactionRelations, self).__init__()
@@ -1139,10 +1140,8 @@ class FactionRelations(_PBashParser):
                     self.id_deleted[rec_fid].append(del_candidate)
         # Merge added relations, preserve changed relations
         for relation in record.relations:
-            # Note: This is silly, but we do it to make adding support for
-            # games other than Oblivion a breeze in a follow-up commit
             rel_attrs = tuple(getattr(relation, a) for a
-                              in (u'faction', u'mod',))
+                              in self.cls_rel_attrs)
             other_fac = rel_attrs[0]
             if other_fac in other_index:
                 # This is just a change, preserve the latest value
@@ -1165,9 +1164,8 @@ class FactionRelations(_PBashParser):
                 # It's an addition, we need to make a new relation object
                 target_entry = MelObject()
                 record.relations.append(target_entry)
-            # Note: This is silly, but we do it to make adding support for
-            # games other than Oblivion a breeze in a follow-up commit
-            for rel_attr, rel_val in zip((u'faction', u'mod'), relation):
+            # Actually write out the attributes from new_info
+            for rel_attr, rel_val in zip(self.cls_rel_attrs, relation):
                 setattr(target_entry, rel_attr, rel_val)
 
     def readFromText(self,textPath):
@@ -1177,41 +1175,40 @@ class FactionRelations(_PBashParser):
         with CsvReader(textPath) as ins:
             for fields in ins:
                 if len(fields) < 7 or fields[2][:2] != u'0x': continue
-                med,mmod,mobj,oed,omod,oobj,disp = fields[:9]
+                med, mmod, mobj, oed, omod, oobj = fields[:6]
                 mmod = _coerce(mmod, unicode)
                 omod = _coerce(omod, unicode)
                 mid = (GPath(aliases.get(mmod,mmod)),_coerce(mobj[2:],int,16))
                 oid = (GPath(aliases.get(omod,omod)),_coerce(oobj[2:],int,16))
-                disp = _coerce(disp, int)
+                relation_attrs = (oid,) + tuple(fields[6:])
                 relations = id_relations.get(mid)
                 if relations is None:
                     relations = id_relations[mid] = []
                 for index,entry in enumerate(relations):
                     if entry[0] == oid:
-                        relations[index] = (oid,disp)
+                        relations[index] = relation_attrs
                         break
                 else:
-                    relations.append((oid,disp))
+                    relations.append(relation_attrs)
 
     def writeToText(self,textPath):
         """Exports faction relations to specified text file."""
-        id_relations,id_eid = self.id_stored_info[b'FACT'], self.id_context
-        headFormat = u'"%s","%s","%s","%s","%s","%s","%s"\n'
-        rowFormat = u'"%s","%s","0x%06X","%s","%s","0x%06X","%s"\n'
-        with textPath.open(u'w',encoding=u'utf-8-sig') as out:
-            out.write(headFormat % (
-                _(u'Main Eid'),_(u'Main Mod'),_(u'Main Object'),
-                _(u'Other Eid'),_(u'Other Mod'),_(u'Other Object'),_(u'Disp')))
-            for main in sorted(id_relations,
-                               key=lambda x:id_eid.get(x)[1].lower()):
-                mainEid = id_eid.get(main, (None, u'Unknown'))[1]
-                for other,disp in sorted(
-                        id_relations[main],
-                        key=lambda x:id_eid.get(x[0])[1].lower()):
-                    otherEid = id_eid.get(other, (None, u'Unknown'))[1]
-                    out.write(rowFormat % (
-                        mainEid,main[0].s,main[1],otherEid,other[0].s,other[1],
-                        disp))
+        id_relations, id_eid = self.id_stored_info[b'FACT'], self.id_context
+        with textPath.open(u'w', encoding=u'utf-8-sig') as out:
+            out.write(bush.game.relations_csv_header)
+            for main_fid in sorted(id_relations,
+                                   key=lambda x: id_eid.get(x)[1].lower()):
+                main_eid = id_eid.get(main_fid, (None, u'Unknown'))[1]
+                for relation_obj in sorted(
+                        id_relations[main_fid],
+                        key=lambda x: id_eid.get(x[0])[1].lower()):
+                    other_fid = relation_obj[0]
+                    other_eid = id_eid.get(other_fid, (None, u'Unknown'))[1]
+                    # I wish py2 allowed star exprs in tuples/lists...
+                    row_vals = (main_eid, main_fid[0].s, main_fid[1],
+                                other_eid, other_fid[0].s,
+                                other_fid[1]) + relation_obj[1:]
+                    out.write(bush.game.relations_csv_row_format % row_vals)
 
 class CBash_FactionRelations(object):
     """Faction relations."""

@@ -474,6 +474,7 @@ def InitModLinks():
             exportMenu = MenuLink(_(u"Export"))
             exportMenu.links.append(Mod_EditorIds_Export())
             exportMenu.links.append(Mod_Factions_Export())
+            exportMenu.links.append(Mod_FactionRelations_Export())
             if bush.game.fsName in (u'Enderal', u'Skyrim'):
                 exportMenu.links.append(Mod_FullNames_Export())
                 exportMenu.links.append(Mod_Prices_Export())
@@ -481,7 +482,6 @@ def InitModLinks():
                 # TODO(inf) Commented out lines were only in FNV branch
                 exportMenu.links.append(Mod_FullNames_Export())
                 exportMenu.links.append(Mod_Prices_Export())
-                exportMenu.links.append(Mod_FactionRelations_Export())
                 # exportMenu.links.append(Mod_IngredientDetails_Export())
                 # exportMenu.links.append(Mod_Scripts_Export())
                 # exportMenu.links.append(Mod_SpellRecords_Export())
@@ -493,7 +493,6 @@ def InitModLinks():
                 exportMenu.links.append(Mod_FullNames_Export())
                 exportMenu.links.append(Mod_ActorLevels_Export())
                 exportMenu.links.append(Mod_Prices_Export())
-                exportMenu.links.append(Mod_FactionRelations_Export())
                 exportMenu.links.append(Mod_Scripts_Export())
                 exportMenu.links.append(Mod_SigilStoneDetails_Export())
                 exportMenu.links.append(Mod_SpellRecords_Export())
@@ -503,6 +502,7 @@ def InitModLinks():
             importMenu = MenuLink(_(u"Import"))
             importMenu.links.append(Mod_EditorIds_Import())
             importMenu.links.append(Mod_Factions_Import())
+            importMenu.links.append(Mod_FactionRelations_Import())
             if bush.game.fsName in (u'Enderal', u'Skyrim'):
                 importMenu.links.append(Mod_FullNames_Import())
                 importMenu.links.append(Mod_Prices_Import())
@@ -510,7 +510,6 @@ def InitModLinks():
                 # TODO(inf) Commented out lines were only in FNV branch
                 importMenu.links.append(Mod_FullNames_Import())
                 importMenu.links.append(Mod_Prices_Import())
-                importMenu.links.append(Mod_FactionRelations_Import())
                 # importMenu.links.append(Mod_IngredientDetails_Import())
                 # importMenu.links.append(Mod_Scripts_Import())
                 importMenu.links.append(Mod_Stats_Import())
@@ -523,7 +522,6 @@ def InitModLinks():
                 importMenu.links.append(Mod_FullNames_Import())
                 importMenu.links.append(Mod_ActorLevels_Import())
                 importMenu.links.append(Mod_Prices_Import())
-                importMenu.links.append(Mod_FactionRelations_Import())
                 importMenu.links.append(Mod_Scripts_Import())
                 importMenu.links.append(Mod_SigilStoneDetails_Import())
                 importMenu.links.append(Mod_SpellRecords_Import())
