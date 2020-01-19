@@ -590,8 +590,10 @@ class MreCell(MelRecord):
         MelEdid(),
         MelFull(),
         MelUInt8(b'DATA', (cellFlags, u'flags')),
-        MelCoordinates(b'XCLC', u'2i', u'posX', u'posY', is_optional=True,
-                       old_versions=set()),
+        # None defaults here are on purpose - XCLC does not necessarily exist,
+        # but 0 is a valid value for both coordinates (duh)
+        MelCoordinates(b'XCLC', u'2i', (u'posX', None), (u'posY', None),
+            is_optional=True, old_versions=set()),
         MelOptStruct(b'XCLL', u'=3Bs3Bs3Bs2f2i2f', u'ambientRed',
             u'ambientGreen', u'ambientBlue', (u'unused1', null1),
             u'directionalRed', u'directionalGreen', u'directionalBlue',
