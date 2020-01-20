@@ -325,7 +325,7 @@ class ModFile(object):
         """Convert fids using the target mapper and the specified format - long
         FormIDs if to_long is True, short FormIDs otherwise."""
         if target_types is None:
-            target_types = self.tops.keys()
+            target_types = list(self.tops)
         else:
             assert isinstance(target_types, (list, tuple, set))
         for target_type in target_types:
