@@ -89,10 +89,9 @@ class _AParser(object):
         # The types of records to read from in the second pass. These should be
         # strings matching the record types, *not* classes.
         self._sp_types = ()
-        # Maps record types to mod names to dicts that map long fids to stored
-        # information. May have been retrieved from a mod in the second pass,
-        # or from reading a CSV file
-        self.id_stored_info = defaultdict(lambda: defaultdict(dict))
+        # Maps record types to dicts that map long fids to stored information
+        # May have been retrieved from mod in second pass, or from a CSV file
+        self.id_stored_info = defaultdict(dict)
         # Automatically set to True when called by a patcher - can be used to
         # alter behavior correspondingly
         self.called_from_patcher = False
@@ -324,7 +323,6 @@ class _PBashParser(_AParser):
         _fp_loop(loaded_mod)
 
     def _read_plugin_sp(self, loaded_mod):
-        source_mod = loaded_mod.fileInfo.name
         for rec_type in self._sp_types:
             rec_block = loaded_mod.tops.get(rec_type, None)
             if not rec_block: continue
@@ -332,7 +330,7 @@ class _PBashParser(_AParser):
                 # Check if we even want this record first
                 if self._is_record_useful(record):
                     rec_fid = record.fid
-                    self.id_stored_info[rec_type][source_mod][rec_fid] = \
+                    self.id_stored_info[rec_type][rec_fid] = \
                         self._read_record_sp(record)
                     # Check if we need to follow up on the first pass info
                     if self._context_needs_followup:
