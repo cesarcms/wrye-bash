@@ -104,7 +104,7 @@ class StatusBar_Button(ItemLink):
     def obseVersion(self):
         if not bass.settings['bash.statusbar.showversion']: return u''
         for ver_file in bush.game.Se.ver_files:
-            ver_path = bass.dirs['app'].join(ver_file)
+            ver_path = bass.dirs[u'app'].join(ver_file)
             if ver_path.exists():
                 return u' ' + u'.'.join([u'%s' % x for x
                                          in ver_path.strippedVersion])
@@ -251,7 +251,7 @@ class _ExeButton(_App_Button):
             try:
                 import win32api
                 win32api.ShellExecute(0, 'runas', exe_path.s,
-                    u'%s' % self.exeArgs, bass.dirs['app'].s, 1)
+                    u'%s' % self.exeArgs, bass.dirs[u'app'].s, 1)
             except:
                 self.ShowError(werr)
         except Exception as error:
@@ -488,8 +488,8 @@ class Game_Button(_ExeButton):
         return tip_
 
     def _app_button_execute(self):
-        exe_xse = bass.dirs['app'].join(bush.game.Se.exe)
-        exe_laa = bass.dirs['app'].join(bush.game.Laa.exe)
+        exe_xse = bass.dirs[u'app'].join(bush.game.Se.exe)
+        exe_laa = bass.dirs[u'app'].join(bush.game.Laa.exe)
         exe_path = self.exePath # Default to the regular launcher
         if BashStatusBar.laaButton.button_state:
             # Should use the LAA Launcher if it's present
@@ -531,8 +531,8 @@ class TESCS_Button(_ExeButton):
         # + OBSE
         tip_ += u' + %s%s' % (bush.game.Se.se_abbrev, self.obseVersion)
         # + CSE
-        cse_path = bass.dirs['mods'].join(u'obse', u'plugins',
-                                          u'Construction Set Extender.dll')
+        cse_path = bass.dirs[u'mods'].join(u'obse', u'plugins',
+                                           u'Construction Set Extender.dll')
         if cse_path.exists():
             version = cse_path.strippedVersion
             if version != (0,):
@@ -543,7 +543,7 @@ class TESCS_Button(_ExeButton):
         return tip_
 
     def _app_button_execute(self):
-        exe_xse = bass.dirs['app'].join(bush.game.Se.exe)
+        exe_xse = bass.dirs[u'app'].join(bush.game.Se.exe)
         if (self.xse_args and BashStatusBar.obseButton.button_state
                 and exe_xse.isfile()):
             # If the script extender for this game has CK support, the xSE
@@ -606,7 +606,7 @@ class Obse_Button(_StatefulButton):
     @property
     def _present(self):
         return (bool(bush.game.Se.se_abbrev)
-                and bass.dirs['app'].join(bush.game.Se.exe).exists())
+                and bass.dirs[u'app'].join(bush.game.Se.exe).exists())
 
     def SetState(self,state=None):
         super(Obse_Button, self).SetState(state)
@@ -632,7 +632,7 @@ class LAA_Button(_StatefulButton):
     _state_img_key = u'checkbox.blue.%s.%s'
     @property
     def _present(self):
-        return bass.dirs['app'].join(bush.game.Laa.exe).exists()
+        return bass.dirs[u'app'].join(bush.game.Laa.exe).exists()
 
     def SetState(self,state=None):
         super(LAA_Button, self).SetState(state)
