@@ -330,6 +330,7 @@ class PatchDialog(DialogWindow):
                     continue
                 raise
 
+    ##: Ugly warts below, should be unified eventually (see also FIXME above)
     def _pretry(self, patch_name):
         return balt.askYes(
             self, _(u'Bash encountered an error when saving %(patch_name)s.'
@@ -347,8 +348,8 @@ class PatchDialog(DialogWindow):
             self, _(u'Bash encountered an error when renaming '
                     u'%(temp_patch)s to %(patch_name)s.\n\nThe file is in use '
                     u'by another process such as %(xedit_name)s.\nPlease '
-                    u'close the other program that is accessing %s.\n\nTry '
-                    u'again?') % {
+                    u'close the other program that is accessing '
+                    u'%(patch_name)s.\n\nTry again?') % {
                 u'temp_patch': patch_name.temp.s, u'patch_name': patch_name.s,
                 u'xedit_name': bush.game.Xe.full_name},
             _(u'Bashed Patch - Save Error'))
