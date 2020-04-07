@@ -27,8 +27,8 @@ from .. import balt, bolt, bass
 PatcherInfo = namedtuple('PatcherInfo', ['clazz', 'twin_patcher', 'cls_vars'])
 
 def configIsCBash(patchConfigs): ##: belongs to basher but used also in bosh
-    for key in patchConfigs:
-        if 'CBash' in key:
+    for config_key in patchConfigs:
+        if 'CBash' in config_key:
             return True
     return False
 
