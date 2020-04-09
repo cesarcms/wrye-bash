@@ -2172,13 +2172,13 @@ listTypes = ('LVLI','LVLN','LVSP',)
 #------------------------------------------------------------------------------
 # NamesPatcher
 #------------------------------------------------------------------------------
-# remaining to add: 'PERK', 'RACE',
+# remaining to add: 'RACE'; can't be added due to structure: 'DIAL'
 namesTypes = {b'ACTI', b'ALCH', b'AMMO', b'APPA', b'ARMO', b'AVIF', b'BOOK',
               b'CLAS', b'CLFM', b'CONT', b'DOOR', b'ENCH', b'EXPL', b'EYES',
               b'FACT', b'FLOR', b'FURN', b'HAZD', b'HDPT', b'INGR', b'KEYM',
               b'LCTN', b'LIGH', b'MESG', b'MGEF', b'MISC', b'MSTT', b'NPC_',
-              b'PROJ', b'SCRL', b'SHOU', b'SLGM', b'SNCT', b'TACT', b'TREE',
-              b'WATR', b'WEAP', b'WOOP'}
+              b'PERK', b'PROJ', b'SCRL', b'SHOU', b'SLGM', b'SNCT', b'TACT',
+              b'TREE', b'WATR', b'WEAP', b'WOOP'}
 
 #------------------------------------------------------------------------------
 # ItemPrices Patcher
@@ -2294,7 +2294,7 @@ soundsTypes = {
     # Sounds does not need to loop here
     "SNDR": ('category','outputModel','sounds','looping','rumbleSendValue',
              'pctFrequencyShift','pctFrequencyVariance','priority',
-             'dbVariance','staticAttenuation',),
+             'dbVariance','staticAtten',),
     "SOPM": ('reverbSendpct','outputType','ch0_l','ch0_r','ch0_c','ch0_lFE',
              'ch0_rL','ch0_rR','ch0_bL','ch0_bR','ch1_l','ch1_r','ch1_c',
              'ch1_lFE','ch1_rL','ch1_rR','ch1_bL','ch1_bR','ch2_l','ch2_r',
@@ -2462,23 +2462,22 @@ keywords_types = ('ACTI', 'ALCH', 'AMMO', 'ARMO', 'BOOK', 'FLOR', 'FURN',
 #------------------------------------------------------------------------------
 text_long_types = set()
 text_types = {
-    'ALCH': ('description',),
-    'AMMO': ('description',),
-    'APPA': ('description',),
-    'ARMO': ('description',),
-    'AVIF': ('description',),
-    'BOOK': ('description','bookText',),
-    'CLAS': ('description',),
-    #'COLL': ('description',), # seems fairly useless to patch this
-    'LSCR': ('description',),
-    'MESG': ('description',),
-    'MGEF': ('magicItemDescription',),
-    #'PERK': ('description',), # no other patchers right now
-    #'QUST': ('description',), # no other patchers and seems unused
-    'SCRL': ('description',),
-    'SHOU': ('description',),
-    'SPEL': ('description',),
-    'WEAP': ('description',),
+    b'ALCH': (u'description',),
+    b'AMMO': (u'description',),
+    b'APPA': (u'description',),
+    b'ARMO': (u'description',),
+    b'AVIF': (u'description',),
+    b'BOOK': (u'description', u'bookText',),
+    b'CLAS': (u'description',),
+    b'LSCR': (u'text',),
+    b'MESG': (u'description',),
+    b'MGEF': (u'magicItemDescription',),
+    b'PERK': (u'description',),
+    #b'QUST': ('description',), # no other patchers and seems unused
+    b'SCRL': (u'description',),
+    b'SHOU': (u'description',),
+    b'SPEL': (u'description',),
+    b'WEAP': (u'description',),
 }
 
 #------------------------------------------------------------------------------
@@ -2582,6 +2581,27 @@ actor_tweaks = {
 }
 
 #------------------------------------------------------------------------------
+# Assorted Tweaker
+#------------------------------------------------------------------------------
+assorted_tweaks = {
+    u'AssortedTweak_ArmorPlayable',
+    u'AssortedTweak_NoLightFlicker',
+    u'AssortedTweak_PotionWeight',
+    u'AssortedTweak_IngredientWeight',
+    u'AssortedTweak_PotionWeightMinimum',
+    u'AssortedTweak_StaffWeight',
+    u'AssortedTweak_ArrowWeight',
+    u'AssortedTweak_HarvestChance',
+    u'AssortedTweak_WindSpeed',
+    u'AssortedTweak_UniformGroundcover',
+    u'AssortedTweak_SetSoundAttenuationLevels',
+    u'AssortedTweak_SetSoundAttenuationLevels_NirnrootOnly',
+    u'AssortedTweak_LightFadeValueFix',
+    u'AssortedTweak_TextlessLSCRs',
+}
+staff_condition = (u'animationType', 8)
+
+#------------------------------------------------------------------------------
 # Relations Patcher
 #------------------------------------------------------------------------------
 relations_attrs = (u'faction', u'mod', u'group_combat_reaction')
@@ -2593,16 +2613,16 @@ relations_csv_row_format = u'"%s","%s","0x%06X","%s","%s","0x%06X","%s","%s"\n'
 
 # Record type to name dictionary
 record_type_name = {
-    'ALCH': _(u'Potions'),
-    'AMMO': _(u'Ammo'),
-    'APPA': _(u'Apparatuses'),
-    'ARMO': _(u'Armors'),
-    'BOOK': _(u'Books'),
-    'INGR': _(u'Ingredients'),
-    'KEYM': _(u'Keys'),
-    'LIGH': _(u'Lights'),
-    'MISC': _(u'Misc'),
-    'SLGM': _(u'Soulgems'),
-    'SPEL': _(u'Spells'),
-    'WEAP': _(u'Weapons'),
+    b'ALCH': _(u'Ingestibles'),
+    b'AMMO': _(u'Ammo'),
+    b'APPA': _(u'Apparatuses'),
+    b'ARMO': _(u'Armors'),
+    b'BOOK': _(u'Books'),
+    b'INGR': _(u'Ingredients'),
+    b'KEYM': _(u'Keys'),
+    b'LIGH': _(u'Lights'),
+    b'MISC': _(u'Misc'),
+    b'SLGM': _(u'Soulgems'),
+    b'SPEL': _(u'Spells'),
+    b'WEAP': _(u'Weapons'),
 }

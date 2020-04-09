@@ -189,7 +189,7 @@ class _ANamesTweak_Body(_ANamesTweak):
 class _PNamesTweak_Body(_ANamesTweak_Body, _PNamesTweak):
     """Shared code of PBash body names tweaks."""
     def wants_record(self, record):
-        return not record.biped_flags.notPlayable and super(
+        return not self._is_nonplayable(record) and super(
             _PNamesTweak_Body, self).wants_record(record)
 
     def _get_rename_params(self, record):

@@ -547,6 +547,23 @@ class GameInfo(object):
     body_tags = u''
 
     #--------------------------------------------------------------------------
+    # Assorted Tweaker
+    #--------------------------------------------------------------------------
+    assorted_tweaks = set()
+    # Only allow the 'mark playable' tweaks to mark a piece of armor/clothing
+    # as playable if it has at least one biped flag that is not in this set.
+    nonplayable_biped_flags = set()
+    # The record attribute and flag name needed to find out if a piece of armor
+    # is non-playable. Locations differ in TES4, FO3/FNV and TES5.
+    not_playable_flag = (u'flags1', u'isNotPlayable')
+    # The record type that contains the static attenuation field tweaked by the
+    # static attenuation tweaks. SNDR on newer games, SOUN on older games.
+    static_attenuation_rec_type = b'SNDR'
+    # Tuple containing the name of the attribute and the value it has to be set
+    # to in order for a weapon to count as a staff for reweighing purposes
+    staff_condition = ()
+
+    #--------------------------------------------------------------------------
     # Magic Effects - Oblivion-specific
     #--------------------------------------------------------------------------
     # Doesn't list MGEFs that use actor values, but rather MGEFs that have a
@@ -604,19 +621,21 @@ class GameInfo(object):
     _constants_members = {
         u'GlobalsTweaks', u'GmstTweaks', u'actor_importer_attrs',
         u'actor_importer_auto_key', u'actor_tweaks', u'actor_types',
-        u'actor_values', u'bethDataFiles', u'body_tags', u'cc_valid_types',
-        u'cc_passes', u'cellAutoKeys', u'cell_float_attrs', u'cellRecAttrs',
-        u'cellRecFlags', u'condition_function_data', u'default_eyes',
-        u'destructible_types', u'generic_av_effects', u'getvatsvalue_index',
-        u'gmstEids', u'graphicsFidTypes', u'graphicsLongsTypes',
-        u'graphicsModelAttrs', u'graphicsTypes', u'hostile_effects',
-        u'inventoryTypes', u'keywords_types', u'listTypes', u'mgef_basevalue',
-        u'mgef_name', u'mgef_school', u'namesTypes', u'nirnroots',
+        u'actor_values', u'assorted_tweaks', u'bethDataFiles', u'body_tags',
+        u'cc_valid_types', u'cc_passes', u'cellAutoKeys', u'cell_float_attrs',
+        u'cellRecAttrs', u'cellRecFlags', u'condition_function_data',
+        u'default_eyes', u'destructible_types', u'generic_av_effects',
+        u'getvatsvalue_index', u'gmstEids', u'graphicsFidTypes',
+        u'graphicsLongsTypes', u'graphicsModelAttrs', u'graphicsTypes',
+        u'hostile_effects', u'inventoryTypes', u'keywords_types', u'listTypes',
+        u'mgef_basevalue', u'mgef_name', u'mgef_school', u'namesTypes',
+        u'nirnroots', u'nonplayable_biped_flags', u'not_playable_flag',
         u'object_bounds_types', u'pricesTypes', u'record_type_name',
         u'relations_attrs', u'relations_csv_header',
         u'relations_csv_row_format', u'save_rec_types', u'scripts_types',
         u'soundsLongsTypes', u'soundsTypes', u'spell_stats_attrs',
-        u'statsHeaders', u'statsTypes', u'text_long_types', u'text_types',
+        u'static_attenuation_rec_type', u'staff_condition', u'statsHeaders',
+        u'statsTypes', u'text_long_types', u'text_types',
     }
 
     @classmethod
@@ -644,7 +663,8 @@ class GameInfo(object):
         for k in dir(constants):
             if k.startswith('_'): continue
             if k not in cls._constants_members:
-                raise RuntimeError(u'Unexpected game constant %s' % k)
+                raise SyntaxError(u"Unexpected game constant '%s', check for "
+                                  u'typos or update _constants_members' % k)
             setattr(cls, k, getattr(constants, k))
         tweaks_module = importlib.import_module('.default_tweaks',
                                                 package=package_name)

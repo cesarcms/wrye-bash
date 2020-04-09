@@ -72,28 +72,7 @@ class FalloutNVGameInfo(Fallout3GameInfo):
         canCBash = False # True?
         validHeaderVersions = (0.94, 1.32, 1.33, 1.34)
 
-    #--Bash Tags supported by this game
-    # 'Body-F', 'Body-M', 'Body-Size-M', 'Body-Size-F', 'C.Climate', 'C.Light',
-    # 'C.Music', 'C.Name', 'C.RecordFlags', 'C.Owner', 'C.Water','Deactivate',
-    # 'Delev', 'Eyes', 'Factions', 'Relations', 'Filter', 'Graphics', 'Hair',
-    # 'IIM', 'Invent', 'Names', 'NoMerge', 'NpcFaces', 'R.Relations', 'Relev',
-    # 'Scripts', 'ScriptContents', 'Sound', 'Stats', 'Voice-F', 'Voice-M',
-    # 'R.Teeth', 'R.Mouth', 'R.Ears', 'R.Head', 'R.Attributes-F',
-    # 'R.Attributes-M', 'R.Skills', 'R.Description', 'Roads', 'Actors.Anims',
-    # 'Actors.AIData', 'Actors.DeathItem', 'Actors.AIPackages',
-    # 'Actors.AIPackagesForceAdd', 'Actors.Stats', 'Actors.ACBS', 'NPC.Class',
-    # 'Actors.CombatStyle', 'Creatures.Blood', 'NPC.Race','Actors.Skeleton',
-    # 'NpcFacesForceFullImport', 'MustBeActiveIfImported', 'Deflst',
-    # 'Destructible', 'WeaponMods'
     allTags = Fallout3GameInfo.allTags | {u'WeaponMods'}
-
-    # ActorImporter, AliasesPatcher, AssortedTweaker, CellImporter, ContentsChecker,
-    # DeathItemPatcher, DestructiblePatcher, FidListsMerger, GlobalsTweaker,
-    # GmstTweaker, GraphicsPatcher, ImportFactions, ImportInventory, ImportRelations,
-    # ImportScriptContents, ImportScripts, KFFZPatcher, ListsMerger, NamesPatcher,
-    # NamesTweaker, NPCAIPackagePatcher, NpcFacePatcher, PatchMerger, RacePatcher,
-    # RoadImporter, SoundPatcher, StatsPatcher, UpdateReferences, WeaponModsPatcher,
-    #--Patcher available when building a Bashed Patch (referenced by class name)
     patchers = Fallout3GameInfo.patchers + (u'WeaponModsPatcher',)
 
     @classmethod

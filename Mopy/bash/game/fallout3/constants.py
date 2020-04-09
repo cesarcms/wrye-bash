@@ -1088,6 +1088,28 @@ actor_tweaks = {
 body_tags = u'HAGPBFE'
 
 #------------------------------------------------------------------------------
+# Assorted Tweaker
+#------------------------------------------------------------------------------
+##: Mostly mirrored from valda's version - some of these seem to make no sense
+# (e.g. I can't find anything regarding FO3/FNV suffering from the fog bug).
+assorted_tweaks = {
+    u'AssortedTweak_ArmorPlayable',
+    u'AssortedTweak_FogFix',
+    u'AssortedTweak_NoLightFlicker',
+    u'AssortedTweak_WindSpeed',
+    u'AssortedTweak_SetSoundAttenuationLevels',
+    u'AssortedTweak_LightFadeValueFix',
+    u'AssortedTweak_TextlessLSCRs',
+    u'AssortedTweak_PotionWeightMinimum',
+    u'AssortedTweak_ArrowWeight',
+    u'AssortedTweak_UniformGroundcover',
+}
+##: Taken from valda's version, investigate
+nonplayable_biped_flags = {u'pipboy'}
+not_playable_flag = (u'generalFlags', u'notPlayable')
+static_attenuation_rec_type = b'SOUN'
+
+#------------------------------------------------------------------------------
 # Relations Patcher
 #------------------------------------------------------------------------------
 relations_attrs = (u'faction', u'mod', u'group_combat_reaction')
@@ -1099,14 +1121,14 @@ relations_csv_row_format = u'"%s","%s","0x%06X","%s","%s","0x%06X","%s","%s"\n'
 
 # Record type to name dictionary
 record_type_name = {
-    'ALCH':_(u'Potions'),
-    'AMMO':_(u'Ammo'),
-    'ARMA':_(u'Armature'),
-    'ARMO':_(u'Armors'),
-    'BOOK':_(u'Books'),
-    'INGR':_(u'Ingredients'),
-    'KEYM':_(u'Keys'),
-    'LIGH':_(u'Lights'),
-    'MISC':_(u'Misc'),
-    'WEAP':_(u'Weapons'),
+    b'ALCH': _(u'Ingestibles'),
+    b'AMMO': _(u'Ammo'),
+    b'ARMA': _(u'Armature'),
+    b'ARMO': _(u'Armors'),
+    b'BOOK': _(u'Books'),
+    b'INGR': _(u'Ingredients'),
+    b'KEYM': _(u'Keys'),
+    b'LIGH': _(u'Lights'),
+    b'MISC': _(u'Misc'),
+    b'WEAP': _(u'Weapons'),
 }

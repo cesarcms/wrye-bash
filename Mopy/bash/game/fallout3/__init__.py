@@ -129,19 +129,10 @@ class Fallout3GameInfo(GameInfo):
                             u'mouthObject', u'bodyAddOn1', u'bodyAddOn2',
                             u'bodyAddOn3')
 
-    #--Tags supported by this game
-    # 'Body-F', 'Body-M', 'Body-Size-M', 'Body-Size-F', 'C.Climate', 'C.Light',
-    # 'C.Music', 'C.Name', 'C.RecordFlags', 'C.Owner', 'C.Water','Deactivate',
-    # 'Delev', 'Eyes', 'Factions', 'Relations', 'Filter', 'Graphics', 'Hair',
-    # 'IIM', 'Invent', 'Names', 'NoMerge', 'NpcFaces', 'R.Relations', 'Relev',
-    # 'Scripts', 'ScriptContents', 'Sound', 'Stats', 'Voice-F', 'Voice-M',
-    # 'R.Teeth', 'R.Mouth', 'R.Ears', 'R.Head', 'R.Attributes-F',
-    # 'R.Attributes-M', 'R.Skills', 'R.Description', 'Roads', 'Actors.Anims',
-    # 'Actors.AIData', 'Actors.DeathItem', 'Actors.AIPackages',
-    # 'Actors.AIPackagesForceAdd', 'Actors.Stats', 'Actors.ACBS', 'NPC.Class',
-    # 'Actors.CombatStyle', 'Creatures.Blood', 'NPC.Race','Actors.Skeleton',
-    # 'NpcFacesForceFullImport', 'MustBeActiveIfImported', 'Deflst',
-    # 'Destructible'
+    # Remaining to add from valda's version:
+    # Body-F, Body-M, Body-Size-M, Body-Size-F, Eyes, Hair, R.Attributes-F,
+    # R.Attributes-M, R.Description, R.Ears, R.Head, R.Mouth, R.Relations,
+    # R.Skills, R.Teeth, Voice-F, Voice-M
     allTags = {
         u'Actors.ACBS', u'Actors.AIData', u'Actors.AIPackages',
         u'Actors.AIPackagesForceAdd', u'Actors.Anims', u'Actors.CombatStyle',
@@ -158,22 +149,18 @@ class Fallout3GameInfo(GameInfo):
         u'Scripts', u'Sound', u'SpellStats', u'Stats', u'Text',
     }
 
-    # ActorImporter, AliasesPatcher, AssortedTweaker, CellImporter, ContentsChecker,
-    # DeathItemPatcher, DestructiblePatcher, FidListsMerger, GlobalsTweaker,
-    # GmstTweaker, GraphicsPatcher, ImportFactions, ImportInventory, ImportRelations,
-    # ImportScriptContents, ImportScripts, KFFZPatcher, ListsMerger, NamesPatcher,
-    # NamesTweaker, NPCAIPackagePatcher, NpcFacePatcher, PatchMerger, RacePatcher,
-    # RoadImporter, SoundPatcher, StatsPatcher, UpdateReferences,
-    #--Patcher available when building a Bashed Patch (referenced by class name)
-    patchers = (u'PatchMerger', # PatchMerger must come first!
-        u'ActorImporter', u'AliasesPatcher', u'CellImporter',
-        u'ContentsChecker', u'DeathItemPatcher', u'DestructiblePatcher',
-        u'FidListsMerger', u'GmstTweaker', u'GraphicsPatcher',
-        u'ImportActorsSpells', u'ImportFactions', u'ImportInventory',
-        u'ImportRelations', u'ImportScripts', u'KFFZPatcher', u'ListsMerger',
-        u'NamesPatcher', u'NPCAIPackagePatcher', u'NpcFacePatcher',
-        u'ObjectBoundsImporter', u'SoundPatcher', u'SpellsPatcher',
-        u'StatsPatcher', u'TextImporter', u'TweakActors',
+    # Remaining to add from valda's version:
+    # NamesTweaker, RacePatcher, UpdateReferences
+    patchers = (u'PatchMerger', # PatchMerger must come first !
+        u'ActorImporter', u'AliasesPatcher', u'AssortedTweaker',
+        u'CellImporter', u'ContentsChecker', u'DeathItemPatcher',
+        u'DestructiblePatcher', u'FidListsMerger', u'GmstTweaker',
+        u'GraphicsPatcher', u'ImportActorsSpells', u'ImportFactions',
+        u'ImportInventory', u'ImportRelations', u'ImportScripts',
+        u'KFFZPatcher', u'ListsMerger', u'NamesPatcher',
+        u'NPCAIPackagePatcher', u'NpcFacePatcher', u'ObjectBoundsImporter',
+        u'SoundPatcher', u'SpellsPatcher', u'StatsPatcher', u'TextImporter',
+        u'TweakActors',
     )
 
     weaponTypes = (
