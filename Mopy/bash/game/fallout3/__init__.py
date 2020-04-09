@@ -122,6 +122,12 @@ class Fallout3GameInfo(GameInfo):
         validHeaderVersions = (0.85, 0.94)
         stringsFiles = []
         generate_temp_child_onam = True
+        biped_flag_names = (u'head', u'hair', u'upperBody', u'leftHand',
+                            u'rightHand', u'weapon', u'pipboy', u'backpack',
+                            u'necklace', u'headband', u'hat', u'eyeGlasses',
+                            u'noseRing', u'earrings', u'mask', u'choker',
+                            u'mouthObject', u'bodyAddOn1', u'bodyAddOn2',
+                            u'bodyAddOn3')
 
     #--Tags supported by this game
     # 'Body-F', 'Body-M', 'Body-Size-M', 'Body-Size-F', 'C.Climate', 'C.Light',
