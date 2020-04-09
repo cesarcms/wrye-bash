@@ -96,7 +96,7 @@ class MelBipedObjectData(MelStruct):
 
     def __init__(self):
         MelStruct.__init__(self, b'BOD2', u'=2I',
-                           (MelBipedObjectData._bp_flags, u'bipedFlags'),
+                           (MelBipedObjectData._bp_flags, u'biped_flags'),
                            (MelBipedObjectData.ArmorTypeFlags, u'armorFlags'))
 
     def getLoaders(self,loaders):
@@ -120,7 +120,7 @@ class MelBipedObjectData(MelStruct):
                                                               size_, readId)
             # legacyData is discarded except for non-playable status
             setter = record.__setattr__
-            setter(u'bipedFlags', MelBipedObjectData._bp_flags(bp_flags))
+            setter(u'biped_flags', MelBipedObjectData._bp_flags(bp_flags))
             legacyFlags = MelBipedObjectData.LegacyFlags(legacyData)
             record.flags1[2] = legacyFlags[4]
             setter('armorFlags',MelBipedObjectData.ArmorTypeFlags(armorFlags))
