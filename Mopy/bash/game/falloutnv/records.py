@@ -26,7 +26,7 @@ from __future__ import division
 import struct
 # Set MelModel in brec, in this case it's identical to the fallout 3 one
 from ..fallout3.records import MelOwnership, MelDestructible, MelEffects, \
-    MelConditions, MreHasEffects, MelEmbeddedScript, MelItems
+    MelConditions, MelEmbeddedScript, MelItems
 from ..fallout3.records import _MelModel # HACK - needed for tests
 from ...bolt import Flags
 from ...brec import MelModel # set in Mopy/bash/game/fallout3/records.py
@@ -653,7 +653,7 @@ class MreDobj(MelRecord):
     __slots__ = melSet.getSlotsUsed()
 
 #------------------------------------------------------------------------------
-class MreEnch(MelRecord,MreHasEffects):
+class MreEnch(MelRecord):
     """Object Effect."""
     rec_sig = b'ENCH'
 
