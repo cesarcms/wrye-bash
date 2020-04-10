@@ -544,7 +544,12 @@ class GameInfo(object):
     #--------------------------------------------------------------------------
     # Names Tweaker
     #--------------------------------------------------------------------------
+    # TODO(inf) Fill out docs for this
     body_tags = u''
+    # The name of a typical weapon in this game. Shown in tooltips for name
+    # tweaks as a preview.
+    example_weapon_name = _(u'Iron Bow')
+    names_tweaks = set()
 
     #--------------------------------------------------------------------------
     # Assorted Tweaker
@@ -624,12 +629,13 @@ class GameInfo(object):
         u'actor_values', u'assorted_tweaks', u'bethDataFiles', u'body_tags',
         u'cc_valid_types', u'cc_passes', u'cellAutoKeys', u'cell_float_attrs',
         u'cellRecAttrs', u'cellRecFlags', u'condition_function_data',
-        u'default_eyes', u'destructible_types', u'generic_av_effects',
-        u'getvatsvalue_index', u'gmstEids', u'graphicsFidTypes',
-        u'graphicsLongsTypes', u'graphicsModelAttrs', u'graphicsTypes',
-        u'hostile_effects', u'inventoryTypes', u'keywords_types', u'listTypes',
-        u'mgef_basevalue', u'mgef_name', u'mgef_school', u'namesTypes',
-        u'nirnroots', u'nonplayable_biped_flags', u'not_playable_flag',
+        u'default_eyes', u'destructible_types', u'example_weapon_name',
+        u'generic_av_effects', u'getvatsvalue_index', u'gmstEids',
+        u'graphicsFidTypes', u'graphicsLongsTypes', u'graphicsModelAttrs',
+        u'graphicsTypes', u'hostile_effects', u'inventoryTypes',
+        u'keywords_types', u'listTypes', u'mgef_basevalue', u'mgef_name',
+        u'mgef_school', u'names_tweaks', u'namesTypes', u'nirnroots',
+        u'nonplayable_biped_flags', u'not_playable_flag',
         u'object_bounds_types', u'pricesTypes', u'record_type_name',
         u'relations_attrs', u'relations_csv_header',
         u'relations_csv_row_format', u'save_rec_types', u'scripts_types',

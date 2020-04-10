@@ -1086,6 +1086,10 @@ actor_tweaks = {
 # Names Tweaker
 #------------------------------------------------------------------------------
 body_tags = u'HAGPBFE'
+example_weapon_name = _(u'BB Gun')
+names_tweaks = {
+    u'NamesTweak_Weapons',
+}
 
 #------------------------------------------------------------------------------
 # Assorted Tweaker

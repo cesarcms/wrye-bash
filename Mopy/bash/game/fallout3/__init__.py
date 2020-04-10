@@ -150,14 +150,14 @@ class Fallout3GameInfo(GameInfo):
     }
 
     # Remaining to add from valda's version:
-    # NamesTweaker, RacePatcher, UpdateReferences
+    # RacePatcher, UpdateReferences
     patchers = (u'PatchMerger', # PatchMerger must come first !
         u'ActorImporter', u'AliasesPatcher', u'AssortedTweaker',
         u'CellImporter', u'ContentsChecker', u'DeathItemPatcher',
         u'DestructiblePatcher', u'FidListsMerger', u'GmstTweaker',
         u'GraphicsPatcher', u'ImportActorsSpells', u'ImportFactions',
         u'ImportInventory', u'ImportRelations', u'ImportScripts',
-        u'KFFZPatcher', u'ListsMerger', u'NamesPatcher',
+        u'KFFZPatcher', u'ListsMerger', u'NamesPatcher', u'NamesTweaker',
         u'NPCAIPackagePatcher', u'NpcFacePatcher', u'ObjectBoundsImporter',
         u'SoundPatcher', u'SpellsPatcher', u'StatsPatcher', u'TextImporter',
         u'TweakActors',

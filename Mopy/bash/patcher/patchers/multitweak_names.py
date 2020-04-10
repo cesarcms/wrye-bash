@@ -29,6 +29,7 @@ from __future__ import division
 import re
 from functools import partial
 # Internal
+from ... import bush
 from ...bolt import RecPath
 from ...brec import MreRecord # yuck, see usage below
 from ...exception import AbstractError
@@ -425,15 +426,16 @@ class _ANamesTweak_Weapons(_ANamesTweak):
     tweak_name = _(u'Weapons')
     tweak_tip = _(u'Label ammo and weapons to sort by type and damage.')
     tweak_key = u'WEAP' # u'' is intended, not a record sig, ugh...
-    tweak_choices = [(_(u'B Iron Bow'),     u'%s '),
-                     (_(u'B. Iron Bow'),    u'%s. '),
-                     (_(u'B - Iron Bow'),   u'%s - '),
-                     (_(u'(B) Iron Bow'),   u'(%s) '),
+    _weapon_example = bush.game.example_weapon_name
+    tweak_choices = [(u'B ' + _weapon_example,     u'%s '),
+                     (u'B. ' + _weapon_example,    u'%s. '),
+                     (u'B - ' + _weapon_example,   u'%s - '),
+                     (u'(B) ' + _weapon_example,   u'(%s) '),
                      (u'----', u'----'),
-                     (_(u'B08 Iron Bow'),   u'%s%02d '),
-                     (_(u'B08. Iron Bow'),  u'%s%02d. '),
-                     (_(u'B08 - Iron Bow'), u'%s%02d - '),
-                     (_(u'(B08) Iron Bow'), u'(%s%02d) ')]
+                     (u'B08 ' + _weapon_example,   u'%s%02d '),
+                     (u'B08. ' + _weapon_example,  u'%s%02d. '),
+                     (u'B08 - ' + _weapon_example, u'%s%02d - '),
+                     (u'(B08) ' + _weapon_example, u'(%s%02d) ')]
 
     def wants_record(self, record):
         return (record.full and (self._get_record_signature(record) != b'AMMO'
@@ -585,9 +587,7 @@ class NamesTweaker(_ANamesTweaker,MultiTweaker):
     def tweak_instances(cls):
         instances = sorted(
             [TextReplacer(*x) for x in cls._txtReplacer] + [
-                NamesTweak_Body_Armor(), NamesTweak_Body_Clothes(),
-                NamesTweak_Potions(), NamesTweak_Scrolls(),
-                NamesTweak_Spells(), NamesTweak_Weapons()],
+                globals()[tname]() for tname in bush.game.names_tweaks],
             key=lambda a: a.tweak_name.lower())
         instances.insert(0, NamesTweak_BodyTags())
         return instances
