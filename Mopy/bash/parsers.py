@@ -580,7 +580,7 @@ class ActorLevels(object):
         from . import bosh
         mod_id_levels, gotLevels = self.mod_id_levels, self.gotLevels
         loadFactory = LoadFactory(False,MreRecord.type_class[b'NPC_'])
-        for modName in (modInfo.get_masters() + [modInfo.name]):
+        for modName in (modInfo.masterNames + (modInfo.name,)):
             if modName in gotLevels: continue
             modFile = ModFile(bosh.modInfos[modName],loadFactory)
             modFile.load(True)

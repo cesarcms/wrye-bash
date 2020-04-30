@@ -173,7 +173,6 @@ class _APreserver(ImportPatcher):
             if srcMod not in minfs: continue
             srcInfo = minfs[srcMod]
             srcFile = ModFile(srcInfo,loadFactory)
-            masters = srcInfo.get_masters()
             srcFile.load(True)
             srcFile.convertToLongFids(longTypes)
             mapper = srcFile.getLongMapper()
@@ -183,7 +182,7 @@ class _APreserver(ImportPatcher):
                 self.classestemp.add(recClass)
                 self._init_data_loop(mapper, recClass, srcFile, srcMod,
                                      temp_id_data)
-            for master in masters:
+            for master in srcInfo.masterNames:
                 if master not in minfs: continue # or break filter mods
                 if master in cachedMasters:
                     masterFile = cachedMasters[master]
@@ -469,7 +468,6 @@ class CellImporter(ImportPatcher):
             srcFile.load(True)
             srcFile.convertToLongFids(('CELL','WRLD'))
             cachedMasters[srcMod] = srcFile
-            masters = srcInfo.get_masters()
             bashTags = srcInfo.getBashTags()
             # print bashTags
             tags = bashTags & set(self.recAttrs)
@@ -490,7 +488,7 @@ class CellImporter(ImportPatcher):
                     # if 'C.Maps' in bashTags:
                     #     if worldBlock.world.mapPath:
                     #         tempCellData['Maps'][worldBlock.world.fid] = worldBlock.world.mapPath
-            for master in masters:
+            for master in srcInfo.masterNames:
                 if master not in minfs: continue # or break filter mods
                 if master in cachedMasters:
                     masterFile = cachedMasters[master]
@@ -512,6 +510,7 @@ class CellImporter(ImportPatcher):
                         # if worldBlock.world.fid in tempCellData['Maps']:
                             # if worldBlock.world.mapPath != tempCellData['Maps'][worldBlock.world.fid]:
                                 # cellData['Maps'][worldBlock.world.fid] = tempCellData['Maps'][worldBlock.world.fid]
+            tempCellData = {}
             tempCellData = {}
             progress.plus()
 
@@ -820,7 +819,6 @@ class NpcFacePatcher(_ANpcFacePatcher,ImportPatcher):
             temp_faceData = {}
             faceInfo = minfs[faceMod]
             faceFile = ModFile(faceInfo,loadFactory)
-            masters = faceInfo.get_masters()
             bashTags = faceInfo.getBashTags()
             faceFile.load(do_unpack=True)
             faceFile.convertToLongFids(('NPC_',))
@@ -859,7 +857,7 @@ class NpcFacePatcher(_ANpcFacePatcher,ImportPatcher):
                 for fid in temp_faceData:
                     faceData[fid] = temp_faceData[fid]
             else:
-                for master in masters:
+                for master in faceInfo.masterNames:
                     if master not in minfs: continue # or break filter mods
                     if master in cachedMasters:
                         masterFile = cachedMasters[master]
