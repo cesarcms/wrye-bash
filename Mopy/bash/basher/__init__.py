@@ -3724,7 +3724,6 @@ class BashNotebook(wx.Notebook, balt.TabDragMixin):
 #------------------------------------------------------------------------------
 class BashStatusBar(DnDStatusBar):
     #--Class Data
-    SettingsMenu = Links()
     obseButton = None
     laaButton = None
 
