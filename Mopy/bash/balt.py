@@ -2020,7 +2020,7 @@ class UIList_OpenItems(ItemLink):
 
 class UIList_OpenStore(ItemLink):
     """Opens data directory in explorer."""
-    _text = _(u'Open...')
+    _text = _(u'Open Folder...')
 
     @property
     def menu_help(self):
