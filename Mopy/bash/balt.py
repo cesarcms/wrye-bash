@@ -2261,7 +2261,7 @@ class DnDStatusBar(wx.StatusBar):
         self.dragStart = 0
         self.moved = False
 
-    def UpdateIconSizes(self): raise AbstractError
+    def UpdateIconSizes(self, skip_refresh=False): raise AbstractError
     def GetLink(self,uid=None,index=None,button=None): raise AbstractError
 
     @property
