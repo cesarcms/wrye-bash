@@ -25,11 +25,12 @@ from . import BashStatusBar, tabInfo
 from .constants import colorInfo, settingDefaults
 from .. import balt, barb, bass, bush, env, exception
 from ..balt import colors, Link, Resources
-from ..bolt import deprint
+from ..bolt import deprint, GPath
 from ..gui import ApplyButton, BusyCursor, Button, CancelButton, Color, \
     ColorPicker, DialogWindow, DropDown, HLayout, HorizontalLine, \
     LayoutOptions, OkButton, PanelWin, Stretch, TextArea, TreePanel, VLayout, \
-    WrappingTextMixin, ListBox, Label, Spacer, HBoxedLayout, CheckBox
+    WrappingTextMixin, ListBox, Label, Spacer, HBoxedLayout, CheckBox, \
+    RadioButton
 
 class SettingsDialog(DialogWindow):
     """A dialog for configuring settings, split into multiple pages."""
@@ -38,11 +39,18 @@ class SettingsDialog(DialogWindow):
     def __init__(self):
         super(SettingsDialog, self).__init__(Link.Frame, title=_(u'Settings'),
             icon_bundle=Resources.bashBlue, sizes_dict=balt.sizes)
-        self._tab_tree = TreePanel(self, _settings_pages, _page_descriptions)
+        # Used to keep track of the pages that have changed settings
         self._changed_state = {}
+        # Used to keep track of a potential scheduled restart of Wrye Bash in
+        # order to apply certain settings
+        self._requesting_restart = set()
+        self._restart_params = []
+        # GUI/Layout Definition
+        self._tab_tree = TreePanel(self, _settings_pages, _page_descriptions)
         for leaf_page in self._tab_tree.get_leaf_pages():
             self._changed_state[leaf_page] = False
             leaf_page._mark_changed = self._exec_mark_changed
+            leaf_page._request_restart = self._exec_request_restart
 ##: Not yet ready, will need much more refactoring (#178). We'd need a way to
 # have each page and each setting as an object, so that we can pass the search
 # term along to each page. Plus TreeCtrl refactoring is needed to easily hide
@@ -54,7 +62,7 @@ class SettingsDialog(DialogWindow):
         self.cancel_btn = CancelButton(self)
         # This will automatically be picked up for the top-right close button
         # by wxPython, due to us using CancelButton
-        self.cancel_btn.on_clicked.subscribe(self._send_cancel)
+        self.cancel_btn.on_clicked.subscribe(self._send_closing)
         self.apply_btn = ApplyButton(self)
         self.apply_btn.enabled = False
         self.apply_btn.on_clicked.subscribe(self._send_apply)
@@ -73,22 +81,39 @@ class SettingsDialog(DialogWindow):
         self._changed_state[requesting_page] = is_changed
         self.apply_btn.enabled = any(self._changed_state.itervalues())
 
+    def _exec_request_restart(self, requesting_setting, restart_params):
+        """Schedules a restart request from the specified setting."""
+        self._requesting_restart.add(requesting_setting)
+        self._restart_params.extend(restart_params)
+
     def _send_apply(self):
         """Propagates an Apply button click to all child pages."""
         for leaf_page in self._tab_tree.get_leaf_pages():
             leaf_page.on_apply()
+        if self._requesting_restart:
+            # A restart has been requested, ask the user whether to do it now
+            if balt.askYes(self,
+                    _(u'The following settings require Wrye Bash to be '
+                      u'restarted before they take effect:')
+                    + u'\n\n' + u'\n'.join(
+                        u' - %s' % r for r in sorted(self._requesting_restart))
+                    + u'\n\n' + _(u'Do you want to restart now?'),
+                    title=_(u'Restart Wrye Bash')):
+                Link.Frame.Restart(self._restart_params)
+            else:
+                # User denied the restart, don't bother them again
+                self._requesting_restart.clear()
+                del self._restart_params[:]
 
-    def _send_cancel(self):
+    def _send_closing(self):
         """Propagates a Cancel button click to all child pages."""
         for leaf_page in self._tab_tree.get_leaf_pages():
-            leaf_page.on_cancel()
             leaf_page.on_closing()
 
     def _send_ok(self):
         """Propagates an OK button click to all child pages."""
-        for leaf_page in self._tab_tree.get_leaf_pages():
-            leaf_page.on_apply()
-            leaf_page.on_closing()
+        self._send_closing()
+        self._send_apply()
 
 class _ASettingsPanel(WrappingTextMixin, PanelWin):
     """Abstract class for all settings panels."""
@@ -98,6 +123,14 @@ class _ASettingsPanel(WrappingTextMixin, PanelWin):
         # marking the settings in the specified panel as changed or not. Used
         # to automatically enable or disable the Apply button.
         self._mark_changed = None
+        # Callback to a method that will ask the user to restart Wrye Bash
+        # after the settings from all tabs have been applied. It takes two
+        # parameters, a user-readable name for the setting that requires the
+        # restart and a list of options to pass to the newly started process.
+        # Note that the user can deny the restart, so you can't rely on the
+        # next start definitely having these parameters passed to it
+        ##: The restart parameters here are a smell, see usage in LanguagePanel
+        self._request_restart = None
 
     def on_apply(self):
         """Called when the OK or Apply button on the settings dialog is
@@ -309,6 +342,80 @@ class ColorsPanel(_ASettingsPanel):
 
     def on_closing(self):
         self.comboBox.unsubscribe_handler_()
+
+# Languages -------------------------------------------------------------------
+class LanguagePanel(_ASettingsPanel):
+    """Change the language that the GUI is displayed in."""
+    languageMap = {
+        u'chinese (simplified)': _(u'Chinese (Simplified)') + u' (简体中文)',
+        u'chinese (traditional)': _(u'Chinese (Traditional)') + u' (繁体中文)',
+        u'de': _(u'German') + u' (Deutsch)',
+        u'pt_opt': _(u'Portuguese') + u' (português)',
+        u'italian': _(u'Italian') + u' (italiano)',
+        u'japanese': _(u'Japanese') + u' (日本語)',
+        u'russian': _(u'Russian') + u' (ру́сский язы́к)',
+        u'english': _(u'English') + u' (English)',
+    }
+
+    def __init__(self, parent, page_desc):
+        super(LanguagePanel, self).__init__(parent, page_desc)
+        # Used to map localized radio button names back to internal language
+        # names
+        self._button_to_lang = {}
+        all_langs = []
+        # Gather all localizations in the l10n directory
+        for f in bass.dirs['l10n'].list():
+            if f.cext == u'.txt' and f.csbody[-3:] != u'new':
+                all_langs.append(f.body)
+        # Insert English since there's no localization file for that
+        if GPath('english') not in all_langs:
+            all_langs.append(GPath(u'english'))
+        localized_langs = [self.languageMap.get(l.s.lower(), l.s)
+                           for l in all_langs]
+        lang_layouts = []
+        is_first_button = True
+        for internal_name, localized_name in sorted(zip(
+                all_langs, localized_langs), key=lambda lng: lng[1]):
+            # Build the radio button for this language, check it if it's for
+            # the current language
+            lang_button = RadioButton(self, localized_name,
+                is_group=is_first_button)
+            lang_button.on_checked.subscribe(self._handle_lang_button)
+            if self._is_active_lang(internal_name):
+                lang_button.is_checked = True
+            is_first_button = False
+            # Remember the language that this button corresponds to
+            self._button_to_lang[lang_button] = internal_name
+            lang_layouts.append(HLayout(items=[Spacer(4), lang_button]))
+        VLayout(border=6, spacing=4,
+                items=[self._panel_text] + lang_layouts).apply_to(self)
+
+    def _handle_lang_button(self, _checked):
+        """Internal callback, called when one of the language buttons has been
+        checked. Marks this page as changed or not."""
+        for lang_btn, internal_name in self._button_to_lang.iteritems():
+            if lang_btn.is_checked:
+                self._mark_changed(self,
+                    not self._is_active_lang(internal_name))
+                break
+
+    @staticmethod
+    def _is_active_lang(internal_name):
+        """Returns True if the specified language is currently active."""
+        return bass.active_locale.lower() in internal_name.s.lower()
+
+    def on_apply(self):
+        self._mark_changed(self, False)
+        for lang_btn, internal_name in self._button_to_lang.iteritems():
+            if lang_btn.is_checked:
+                ##: #26, our oldest open issue; This should be a
+                # parameterless restart request, with us having saved the
+                # new language to some 'early boot' info file
+                if self._is_active_lang(internal_name): continue # unchanged
+                lang_str = internal_name.s
+                self._request_restart(
+                    _(u'Language: %s') % self.languageMap[lang_str.lower()],
+                    ['--Language', lang_str])
 
 # Status Bar ------------------------------------------------------------------
 class StatusBarPanel(_ASettingsPanel):
@@ -741,6 +848,7 @@ class BackupsPanel(_ASettingsPanel):
 _settings_pages = {
     _(u'Appearance'): {
         _(u'Colors'): ColorsPanel,
+        _(u'Language'): LanguagePanel,
         _(u'Status Bar'): StatusBarPanel,
     },
     _(u'Backups'): BackupsPanel,
@@ -755,6 +863,8 @@ _page_descriptions = {
     _(u'Colors'):        _(u'Change colors of various GUI components.'),
     _(u'Confirmations'): _(u"Enable or disable popups with a 'Don't show this "
                            u"in the future' option."),
+    _(u'Language'):      _(u'Change the language that Wrye Bash is displayed '
+                           u'in.'),
     _(u'Status Bar'):    _(u'Change settings related to the status bar at the '
                            u'bottom and manage hidden buttons.'),
 }
