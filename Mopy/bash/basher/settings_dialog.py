@@ -27,7 +27,7 @@ import webbrowser
 
 from . import BashStatusBar, tabInfo
 from .constants import colorInfo, settingDefaults
-from .. import balt, barb, bass, bush, env, exception
+from .. import balt, barb, bass, bosh, bush, env, exception
 from ..balt import colors, Link, Resources
 from ..bolt import deprint, GPath
 from ..gui import ApplyButton, BusyCursor, Button, CancelButton, Color, \
@@ -35,7 +35,7 @@ from ..gui import ApplyButton, BusyCursor, Button, CancelButton, Color, \
     LayoutOptions, OkButton, PanelWin, Stretch, TextArea, TreePanel, VLayout, \
     WrappingTextMixin, ListBox, Label, Spacer, HBoxedLayout, CheckBox, \
     RadioButton, TextField, OpenButton, ScrollableWindow, ClickableImage, \
-    RevertButton, SaveButton, SaveAsButton, DoubleListBox
+    RevertButton, SaveButton, SaveAsButton, DoubleListBox, ATreeMixin
 from ..localize import dump_translator
 
 class SettingsDialog(DialogWindow):
@@ -127,19 +127,19 @@ class SettingsDialog(DialogWindow):
     def _send_closing(self):
         """Propagates a Cancel button click to all child pages."""
         for leaf_page in self._tab_tree.get_leaf_pages():
-            leaf_page.on_closing()
+            leaf_page.on_page_closing()
 
     def _send_ok(self):
         """Propagates an OK button click to all child pages."""
         self._send_closing()
         self._send_apply()
 
-class _ASettingsPanel(WrappingTextMixin):
-    """Abstract class for all settings panels."""
+class _ASettingsPage(WrappingTextMixin, ATreeMixin):
+    """Abstract class for all settings pages."""
     def __init__(self, parent, page_desc):
-        super(_ASettingsPanel, self).__init__(page_desc, parent)
-        # Callback to a method that takes the settings panel and a boolean,
-        # marking the settings in the specified panel as changed or not. Used
+        super(_ASettingsPage, self).__init__(page_desc, parent)
+        # Callback to a method that takes the settings page and a boolean,
+        # marking the settings in the specified page as changed or not. Used
         # to automatically enable or disable the Apply button.
         self._mark_changed = None
         # Callback to a method that will ask the user to restart Wrye Bash
@@ -148,22 +148,22 @@ class _ASettingsPanel(WrappingTextMixin):
         # restart and a list of options to pass to the newly started process.
         # Note that the user can deny the restart, so you can't rely on the
         # next start definitely having these parameters passed to it
-        ##: The restart parameters here are a smell, see usage in LanguagePanel
+        ##: The restart parameters here are a smell, see usage in LanguagePage
         self._request_restart = None
 
     def on_apply(self):
         """Called when the OK or Apply button on the settings dialog is
-        clicked. Should apply whatever changes have been made on this panel."""
+        clicked. Should apply whatever changes have been made on this page."""
 
-    def on_closing(self):
+    def on_page_closing(self):
         """Called when the settings dialog is about to be closed."""
 
-class _AScrollablePanel(_ASettingsPanel, ScrollableWindow): pass
-class _AFixedPanel(_ASettingsPanel, PanelWin): pass
+class _AScrollablePage(_ASettingsPage, ScrollableWindow): pass
+class _AFixedPage(_ASettingsPage, PanelWin): pass
 
 # Colors ----------------------------------------------------------------------
-class ColorsPanel(_AFixedPanel): ##: _AScrollablePanel breaks the color picker??
-    """Color configuration panel."""
+class ColorsPage(_AFixedPage): ##: _AScrollablePage breaks the color picker??
+    """Color configuration page."""
     _keys_to_tabs = {
         'mods': _(u'[Mods] '),
         'screens': _(u'[Saves, Screens] '),
@@ -174,7 +174,7 @@ class ColorsPanel(_AFixedPanel): ##: _AScrollablePanel breaks the color picker??
     }
 
     def __init__(self, parent, page_desc):
-        super(ColorsPanel, self).__init__(parent, page_desc)
+        super(ColorsPage, self).__init__(parent, page_desc)
         self.changes = dict()
         #--DropDown
         def _display_text(k):
@@ -356,7 +356,7 @@ class ColorsPanel(_AFixedPanel): ##: _AScrollablePanel breaks the color picker??
         self.changes[color_key] = newColor
         self.UpdateUIButtons()
 
-    def on_closing(self):
+    def on_page_closing(self):
         self.comboBox.unsubscribe_handler_()
 
 # Languages -------------------------------------------------------------------
@@ -423,8 +423,8 @@ class ConfigureEditorDialog(DialogWindow):
         bass.settings[u'bash.l10n.editor.rename_to_po'] = \
             self._po_rename_box.is_checked
 
-##: Quite a bit of duplicate code with the Backups panel here (esp. rename)
-class LanguagePanel(_AScrollablePanel):
+##: Quite a bit of duplicate code with the Backups page here (esp. rename)
+class LanguagePage(_AScrollablePage):
     """Change the language that the GUI is displayed in."""
     languageMap = {
         u'chinese (simplified)': _(u'Chinese (Simplified)') + u' (简体中文)',
@@ -438,7 +438,7 @@ class LanguagePanel(_AScrollablePanel):
     }
 
     def __init__(self, parent, page_desc):
-        super(LanguagePanel, self).__init__(parent, page_desc)
+        super(LanguagePage, self).__init__(parent, page_desc)
         # Used to map localized radio button names back to internal language
         # names
         self._button_to_lang = {}
@@ -659,10 +659,10 @@ class LanguagePanel(_AScrollablePanel):
             ctx_btn.enabled = btns_enabled
 
 # Status Bar ------------------------------------------------------------------
-class StatusBarPanel(_AScrollablePanel):
+class StatusBarPage(_AScrollablePage):
     """Settings related to the status bar."""
     def __init__(self, parent, page_desc):
-        super(StatusBarPanel, self).__init__(parent, page_desc)
+        super(StatusBarPage, self).__init__(parent, page_desc)
         # Used to keep track of each setting's 'changed' state
         self._setting_states = {
             u'app_ver': False,
@@ -739,7 +739,7 @@ class StatusBarPanel(_AScrollablePanel):
                 return link_candidate
         return None
 
-    ##: This whole API should probably move into _ASettingsPanel
+    ##: This whole API should probably move into _ASettingsPage
     def _mark_setting_changed(self, setting_id, is_changed):
         """Marks the setting with the specified ID as changed or unchanged."""
         self._setting_states[setting_id] = is_changed
@@ -822,10 +822,10 @@ class StatusBarPanel(_AScrollablePanel):
         self._icon_lists.right_items = hidden
 
 # Backups ---------------------------------------------------------------------
-class BackupsPanel(_AFixedPanel):
+class BackupsPage(_AFixedPage):
     """Create, manage and restore backups."""
     def __init__(self, parent, page_desc):
-        super(BackupsPanel, self).__init__(parent, page_desc)
+        super(BackupsPage, self).__init__(parent, page_desc)
         self._backup_list = ListBox(self, isSort=True, isHScroll=True,
             onSelect=self._handle_backup_selected)
         save_settings_btn = SaveButton(self, _(u'Save Data'),
@@ -994,14 +994,176 @@ class BackupsPanel(_AFixedPanel):
                         self.delete_backup_btn):
             ctx_btn.enabled = btns_enabled
 
+# Trusted Binaries ------------------------------------------------------------
+class TrustedBinariesPage(_AFixedPage):
+    """Change which binaries are trusted and which aren't."""
+    def __init__(self, parent, page_desc):
+        super(TrustedBinariesPage, self).__init__(parent, page_desc)
+        self._binaries_list = DoubleListBox(self,
+            left_label=_(u'Trusted Binaries'),
+            right_label=_(u'Untrusted Binaries'),
+            left_btn_tooltip=_(u'Mark the selected binary as trusted.'),
+            right_btn_tooltip=_(u'Mark the selected binary as untrusted.'))
+        self._binaries_list.move_btn_callback = self._check_changed
+        import_btn = OpenButton(self, _(u'Import...'),
+            btn_tooltip=_(u'Import list of allowed/disallowed binaries from a '
+                          u'.txt file. This also allows more fine-grained '
+                          u'control over trusted binary versions.'))
+        import_btn.on_clicked.subscribe(self._import_lists)
+        export_btn = SaveAsButton(self, _(u'Export...'),
+            btn_tooltip=_(u'Export list of allowed/disallowed binaries to a '
+                          u'.txt file. This also allows more fine-grained '
+                          u'control over trusted binary versions.'))
+        export_btn.on_clicked.subscribe(self._export_lists)
+        self._populate_binaries()
+        VLayout(border=6, spacing=3, item_expand=True, items=[
+            self._panel_text,
+            (self._binaries_list, LayoutOptions(weight=1)),
+            HLayout(spacing=4, items=[Stretch(), import_btn, export_btn]),
+        ]).apply_to(self)
+
+    def _check_changed(self):
+        good_changed = self._binaries_list.left_items != bass.settings[
+            u'bash.installers.goodDlls'].keys()
+        bad_changed = self._binaries_list.right_items != bass.settings[
+            u'bash.installers.badDlls'].keys()
+        self._mark_changed(self, good_changed or bad_changed)
+        self.pnl_layout()
+
+    ##: Here be dragons, especially in the import method
+    def _export_lists(self):
+        textDir = bass.dirs['patches']
+        textDir.makedirs()
+        #--File dialog
+        title = _(u'Export list of allowed/disallowed plugin DLLs to:')
+        file_ = bush.game.Se.se_abbrev + u' ' + _(u'DLL permissions') + u'.txt'
+        textPath = balt.askSave(self, title=title, defaultDir=textDir,
+            defaultFile=file_, wildcard=u'*.txt')
+        if not textPath: return
+        with textPath.open('w',encoding='utf-8-sig') as out:
+            out.write(u'goodDlls '+_(u'(those dlls that you have chosen to allow to be installed)')+u'\r\n')
+            if bass.settings['bash.installers.goodDlls']:
+                for dll in bass.settings['bash.installers.goodDlls']:
+                    out.write(u'dll:'+dll+u':\r\n')
+                    for index, version in enumerate(bass.settings['bash.installers.goodDlls'][dll]):
+                        out.write(u'version %02d: %s\r\n' % (index, version))
+            else: out.write(u'None\r\n')
+            out.write(u'badDlls '+_(u'(those dlls that you have chosen to NOT allow to be installed)')+u'\r\n')
+            if bass.settings['bash.installers.badDlls']:
+                for dll in bass.settings['bash.installers.badDlls']:
+                    out.write(u'dll:'+dll+u':\r\n')
+                    for index, version in enumerate(bass.settings['bash.installers.badDlls'][dll]):
+                        out.write(u'version %02d: %s\r\n' % (index, version))
+            else: out.write(u'None\r\n')
+
+    def _import_lists(self):
+        textDir = bass.dirs['patches']
+        textDir.makedirs()
+        #--File dialog
+        defFile = bush.game.Se.se_abbrev + u' ' + _(
+            u'dll permissions') + u'.txt'
+        title = _(u'Import list of allowed/disallowed plugin DLLs from:')
+        textPath = balt.askOpen(self, title=title, defaultDir=textDir,
+            defaultFile=defFile, wildcard=u'*.txt', mustExist=True)
+        if not textPath: return
+        message = (_(u'Merge permissions from file with current dll permissions?')
+                   + u'\n' +
+                   _(u"('No' Replaces current permissions instead.)")
+                   )
+        replace = not balt.askYes(Link.Frame, message,
+                                  _(u'Merge permissions?'))
+        try:
+            with textPath.open('r',encoding='utf-8-sig') as ins:
+                Dlls = {'goodDlls':{},'badDlls':{}}
+                for line in ins:
+                    line = line.strip()
+                    if line.startswith(u'goodDlls'):
+                        current = Dlls['goodDlls']
+                    if line.startswith(u'badDlls'):
+                        current = Dlls['badDlls']
+                    elif line.startswith(u'dll:'):
+                        dll = line.split(u':',1)[1].strip().rstrip(u':')
+                        current.setdefault(dll,[])
+                    elif line.startswith(u'version'):
+                        ver = line.split(u':',1)[1]
+                        ver = eval(ver)
+                        current[dll].append(ver)
+            # FIXME don't update immediately
+            if not replace:
+                self._binaries_list.left_items = list(
+                    set(self._binaries_list.left_items) |
+                    set(Dlls['goodDlls']))
+                self._binaries_list.right_items = list(
+                    set(self._binaries_list.right_items) |
+                    set(Dlls['badDlls']))
+            else:
+                self._binaries_list.left_items = Dlls['goodDlls'].keys()
+                self._binaries_list.right_items = Dlls['badDlls'].keys()
+        except UnicodeError:
+            balt.showError(self,
+                _(u'Wrye Bash could not load %s, because it is not saved in '
+                  u'UTF-8 format.  Please resave it in UTF-8 format and try '
+                  u'again.') % textPath.s)
+        except Exception:
+            deprint(u'Error reading', textPath.s, traceback=True)
+            balt.showError(self,
+                _(u'Wrye Bash could not load %s, because there was an error '
+                  u'in the format of the file.') % textPath.s)
+        finally:
+            self._check_changed()
+
+    def on_apply(self):
+        def merge_versions(dll_source, target_dict, source_dict):
+            """Helper function to merge versions for each DLL in dll_source
+            from source_dict into target_dict. Can't just use sets for this
+            since lists aren't hashable."""
+            for d in dll_source:
+                # Merge the new good versions with the old ones, if any
+                prev_vers = target_dict.get(d, [])
+                new_vers = [x for x in source_dict[d] if x not in prev_vers]
+                target_dict[d] = prev_vers + new_vers
+                # Finally, remove the entry from the dict it was previously in
+                del source_dict[d]
+        bad_dlls_dict = bass.settings['bash.installers.badDlls']
+        good_dlls_dict = bass.settings['bash.installers.goodDlls']
+        # Determine which have been moved to/from the bad DLLs list
+        old_bad = set(bad_dlls_dict)
+        new_bad = set(self._binaries_list.right_items)
+        bad_added = new_bad - old_bad
+        bad_removed = old_bad - new_bad
+        merge_versions(dll_source=bad_added, target_dict=bad_dlls_dict,
+            source_dict=good_dlls_dict)
+        merge_versions(dll_source=bad_removed, target_dict=good_dlls_dict,
+            source_dict=bad_dlls_dict)
+        # Force the settings to be saved and BAIN to update its good/bad caches
+        bass.settings.setChanged('bash.installers.badDlls')
+        bass.settings.setChanged('bash.installers.goodDlls')
+        bosh.bain.Installer.badDlls(force_recalc=True)
+        bosh.bain.Installer.goodDlls(force_recalc=True)
+        self._mark_changed(self, False)
+
+    def _populate_binaries(self):
+        self._binaries_list.left_items = bass.settings[
+            u'bash.installers.goodDlls'].keys()
+        self._binaries_list.right_items = bass.settings[
+            u'bash.installers.badDlls'].keys()
+
+    @staticmethod
+    def should_appear():
+        # Currently we only allow a few special types of binaries
+        return bool(bush.game.Sd.sd_abbrev or
+                    bush.game.Se.se_abbrev or
+                    bush.game.Sp.sp_abbrev)
+
 # Page Definitions ------------------------------------------------------------
 _settings_pages = {
     _(u'Appearance'): {
-        _(u'Colors'): ColorsPanel,
-        _(u'Language'): LanguagePanel,
-        _(u'Status Bar'): StatusBarPanel,
+        _(u'Colors'): ColorsPage,
+        _(u'Language'): LanguagePage,
+        _(u'Status Bar'): StatusBarPage,
     },
-    _(u'Backups'): BackupsPanel,
+    _(u'Backups'): BackupsPage,
+    _(u'Trusted Binaries'): TrustedBinariesPage,
 }
 
 _page_descriptions = {
@@ -1022,4 +1184,7 @@ _page_descriptions = {
     _(u'Confirmations'):
         _(u"Enable or disable popups with a 'Don't show this in the future' "
           u'option.'),
+    _(u'Trusted Binaries'):
+        _(u'Change which binaries (DLLs, EXEs, etc.) you trust. Untrusted '
+          u'binaries will be skipped by BAIN when installing packages.')
 }
