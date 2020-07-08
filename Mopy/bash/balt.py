@@ -1936,7 +1936,7 @@ class EnabledLink(ItemLink):
     """
 
     def _enable(self):
-        """"Override as needed to enable or disable the menu item (enabled
+        """Override as needed to enable or disable the menu item (enabled
         by default)."""
         return True
 
@@ -2284,7 +2284,7 @@ class DnDStatusBar(wx.StatusBar):
     def _getButtonIndex(self, mouseEvent):
         id_ = mouseEvent.GetId()
         for i, button in enumerate(self.buttons):
-            if button.wx_id_ == id_:
+            if button.wx_id_() == id_:
                 x = mouseEvent.GetPosition()[0]
                 # position is 0 at the beginning of the button's _icon_
                 # negative beyond that (on the left) and positive after
