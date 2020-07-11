@@ -414,7 +414,6 @@ class CellImporter(ImportPatcher):
         """Get cells from source files."""
         if not self.isActive: return
         cellData = self.cellData
-        # cellData['Maps'] = {}
         def importCellBlockData(cellBlock):
             """
             Add attribute values from source mods to a temporary cache.
@@ -462,7 +461,6 @@ class CellImporter(ImportPatcher):
             # used to update cellData with cells that change those attributes'
             # values from the value in any of srcMod's masters.
             tempCellData = defaultdict(dict)
-            tempCellData['Maps'] = {} # unused !
             srcInfo = minfs[srcMod]
             srcFile = ModFile(srcInfo,loadFactory)
             srcFile.load(True)
@@ -485,9 +483,6 @@ class CellImporter(ImportPatcher):
                         importCellBlockData(cellBlock)
                     if worldBlock.worldCellBlock:
                         importCellBlockData(worldBlock.worldCellBlock)
-                    # if 'C.Maps' in bashTags:
-                    #     if worldBlock.world.mapPath:
-                    #         tempCellData['Maps'][worldBlock.world.fid] = worldBlock.world.mapPath
             for master in srcInfo.masterNames:
                 if master not in minfs: continue # or break filter mods
                 if master in cachedMasters:
@@ -507,10 +502,6 @@ class CellImporter(ImportPatcher):
                             checkMasterCellBlockData(cellBlock)
                         if worldBlock.worldCellBlock:
                             checkMasterCellBlockData(worldBlock.worldCellBlock)
-                        # if worldBlock.world.fid in tempCellData['Maps']:
-                            # if worldBlock.world.mapPath != tempCellData['Maps'][worldBlock.world.fid]:
-                                # cellData['Maps'][worldBlock.world.fid] = tempCellData['Maps'][worldBlock.world.fid]
-            tempCellData = {}
             tempCellData = {}
             progress.plus()
 
@@ -529,14 +520,14 @@ class CellImporter(ImportPatcher):
                     patchCells.setCell(cellBlock.cell)
         if 'WRLD' in modFile.tops:
             for worldBlock in modFile.WRLD.worldBlocks:
+                patchWorlds.setWorld(worldBlock.world)
+                curr_pworld = patchWorlds.id_worldBlocks[worldBlock.world.fid]
                 for cellBlock in worldBlock.cellBlocks:
                     if cellBlock.cell.fid in cellData:
-                        patchWorlds.setWorld(worldBlock.world,
-                                             worldBlock.worldCellBlock)
-                        patchWorlds.id_worldBlocks[
-                            worldBlock.world.fid].setCell(cellBlock.cell)
-                # if worldBlock.world.fid in cellData['Maps']:
-                    # patchWorlds.setWorld(worldBlock.world)
+                        curr_pworld.setCell(cellBlock.cell)
+                pers_cell_block = worldBlock.worldCellBlock
+                if pers_cell_block and pers_cell_block.cell.fid in cellData:
+                    curr_pworld.worldCellBlock = pers_cell_block
 
     def buildPatch(self,log,progress): # buildPatch0
         """Adds merged lists to patchfile."""
@@ -586,17 +577,11 @@ class CellImporter(ImportPatcher):
                     count[cell_fid[0]] += 1
                     keepWorld = True
             if worldBlock.worldCellBlock:
-                if worldBlock.worldCellBlock.cell.fid in cellData:
+                cell_fid = worldBlock.worldCellBlock.cell.fid
+                if cell_fid in cellData:
                     if handlePatchCellBlock(worldBlock.worldCellBlock):
-                        count[worldBlock.worldCellBlock.cell.fid[0]] += 1
+                        count[cell_fid[0]] += 1
                         keepWorld = True
-            # if worldBlock.world.fid in cellData['Maps']:
-                # if worldBlock.world.mapPath != cellData['Maps'][worldBlock.world.fid]:
-                    # print worldBlock.world.mapPath
-                    # worldBlock.world.mapPath = cellData['Maps'][worldBlock.world.fid]
-                    # print worldBlock.world.mapPath
-                    # worldBlock.world.setChanged()
-                    # keepWorld = True
             if keepWorld:
                 keep(worldBlock.world.fid)
         self.cellData.clear()
