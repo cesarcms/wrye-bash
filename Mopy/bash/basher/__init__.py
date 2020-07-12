@@ -66,7 +66,7 @@ import wx
 
 #--Local
 from .. import bush, bosh, bolt, bass, env, load_order, archives
-from ..bolt import GPath, SubProgress, deprint, round_size
+from ..bolt import GPath, SubProgress, deprint, round_size, OrderedDefaultDict
 from ..bosh import omods
 from ..cint import CBashApi
 from ..exception import AbstractError, BoltError, CancelError, FileError, \
@@ -86,8 +86,8 @@ from ..balt import Links, ItemLink
 from ..gui import Button, CancelButton, CheckBox, HLayout, Label, \
     LayoutOptions, RIGHT, SaveButton, Spacer, Stretch, TextArea, TextField, \
     TOP, VLayout, EventResult, DropDown, DialogWindow, WindowFrame, Spinner, \
-    Splitter, NotebookCtrl, PanelWin, CheckListBox, Color, Picture, Image, \
-    CenteredSplash, BusyCursor, RadioButton
+    Splitter, TabbedPanel, PanelWin, CheckListBox, Color, Picture, Image, \
+    CenteredSplash, BusyCursor, RadioButton, GlobalMenu
 
 # Constants -------------------------------------------------------------------
 from .constants import colorInfo, settingDefaults, karmacons, installercons
@@ -235,6 +235,7 @@ class SashUIListPanel(SashPanel):
         self.uiList.autosizeColumns()
         self.uiList.Focus()
         self.SetStatusCount()
+        self.uiList.setup_global_menu()
 
     def ClosePanel(self, destroy=False):
         if not self._firstShow and destroy: # if the panel was shown
@@ -260,7 +261,7 @@ class BashTab(_DetailsViewMixin, SashUIListPanel):
 #------------------------------------------------------------------------------
 class _ModsUIList(balt.UIList):
 
-    _esmsFirstCols = balt.UIList.nonReversibleCols
+    _esmsFirstCols = {u'Load Order', u'Current Order'}
     @property
     def esmsFirst(self): return settings.get(self.keyPrefix + '.esmsFirst',
                             True) or self.sort_column in self._esmsFirstCols
@@ -289,8 +290,8 @@ class _ModsUIList(balt.UIList):
 
 #------------------------------------------------------------------------------
 class MasterList(_ModsUIList):
-    mainMenu = Links()
-    itemMenu = Links()
+    column_links = Links()
+    context_links = Links()
     keyPrefix = 'bash.masters' # use for settings shared among the lists (cols)
     _editLabels = True
     #--Sorting
@@ -542,8 +543,9 @@ class MasterList(_ModsUIList):
 
 #------------------------------------------------------------------------------
 class INIList(balt.UIList):
-    mainMenu = Links()  #--Column menu
-    itemMenu = Links()  #--Single item menu
+    column_links = Links()  #--Column menu
+    context_links = Links()  #--Single item menu
+    global_links = OrderedDefaultDict(lambda: Links()) # Global menu
     _shellUI = True
     _sort_keys = {'File'     : None,
                   'Installer': lambda self, a: bosh.iniInfos.table.getItem(
@@ -789,8 +791,9 @@ class TargetINILineCtrl(INIListCtrl):
 #------------------------------------------------------------------------------
 class ModList(_ModsUIList):
     #--Class Data
-    mainMenu = Links() #--Column menu
-    itemMenu = Links() #--Single item menu
+    column_links = Links() #--Column menu
+    context_links = Links() #--Single item menu
+    global_links = OrderedDefaultDict(lambda: Links()) # Global menu
     def _get(self, mod): return partial(self.data_store.table.getItem, mod)
     _sort_keys = {
         'File'      : None,
@@ -799,6 +802,7 @@ class ModList(_ModsUIList):
         'Group'     : lambda self, a: self._get(a)('group', u''),
         'Installer' : lambda self, a: self._get(a)('installer', u''),
         'Load Order': lambda self, a: load_order.cached_lo_index_or_max(a),
+        u'Indices'  : lambda self, a: self.data_store[a].real_index(),
         'Modified'  : lambda self, a: self.data_store[a].mtime,
         'Size'      : lambda self, a: self.data_store[a].size,
         'Status'    : lambda self, a: self.data_store[a].getStatus(),
@@ -813,6 +817,7 @@ class ModList(_ModsUIList):
     labels = OrderedDict([
         ('File',       lambda self, p: self.data_store.masterWithVersion(p.s)),
         ('Load Order', lambda self, p: self.data_store.hexIndexString(p)),
+        (u'Indices',   lambda self, p: self.data_store[p].real_index_string()),
         ('Rating',     lambda self, p: self._get(p)('rating', u'')),
         ('Group',      lambda self, p: self._get(p)('group', u'')),
         ('Installer',  lambda self, p: self._get(p)('installer', u'')),
@@ -1115,15 +1120,15 @@ class ModList(_ModsUIList):
         # attempted to activate mods that can't be activated (e.g. .esu
         # plugins).
         if illegal_deactivations:
-            balt.askContinue(self, u"You can't deactivate the following "
-                                   u'mods:\n%s' %
-                             u', '.join(illegal_deactivations),
-                             'bash.mods.dnd.illegal_deactivation.continue')
+            balt.askContinue(self,
+                _(u"You can't deactivate the following mods:")
+                + u'\n%s' % u', '.join(illegal_deactivations),
+                u'bash.mods.dnd.illegal_deactivation.continue')
         if illegal_activations:
-            balt.askContinue(self, u"You can't activate the following "
-                                   u'mods:\n%s' %
-                             u', '.join(illegal_activations),
-                             'bash.mods.dnd.illegal_activation.continue')
+            balt.askContinue(self,
+                _(u"You can't activate the following mods:")
+                + u'\n%s' % u', '.join(illegal_activations),
+                u'bash.mods.dnd.illegal_activation.continue')
         if refreshNeeded:
             bosh.modInfos.cached_lo_save_active()
             self.__toggle_active_msg(changes)
@@ -1673,7 +1678,7 @@ class ModDetails(_ModsSavesDetails):
         ##: Popup the menu - ChoiceLink should really be a Links subclass
         tagLinks = Links()
         tagLinks.append(_TagLinks())
-        tagLinks.new_menu(self.gTags, None)
+        tagLinks.popup_menu(self.gTags, None)
         return EventResult.FINISH
 
 #------------------------------------------------------------------------------
@@ -1878,8 +1883,9 @@ class ModPanel(BashTab):
 #------------------------------------------------------------------------------
 class SaveList(balt.UIList):
     #--Class Data
-    mainMenu = Links() #--Column menu
-    itemMenu = Links() #--Single item menu
+    column_links = Links() #--Column menu
+    context_links = Links() #--Single item menu
+    global_links = OrderedDefaultDict(lambda: Links()) # Global menu
     _editLabels = True
     _sort_keys = {
         'File'    : None, # just sort by name
@@ -2163,8 +2169,9 @@ class SavePanel(BashTab):
 
 #------------------------------------------------------------------------------
 class InstallersList(balt.UIList):
-    mainMenu = Links()
-    itemMenu = Links()
+    column_links = Links()
+    context_links = Links()
+    global_links = OrderedDefaultDict(lambda: Links()) # Global menu
     icons = installercons
     _sunkenBorder = False
     _shellUI = True
@@ -2646,7 +2653,7 @@ class InstallersDetails(_SashDetailsPanel):
         self.gPackage = TextArea(top, editable=False, no_border=True)
         #--Info Tabs
         self.gNotebook, self.checkListSplitter = self.subSplitter.make_panes(
-            first_pane=NotebookCtrl(self.subSplitter, multiline=True),
+            first_pane=TabbedPanel(self.subSplitter, multiline=True),
             second_pane=Splitter(self.subSplitter, min_pane_size=50,
                                  sash_gravity=0.5))
         self.gNotebook.set_min_size(100, 100)
@@ -2664,10 +2671,11 @@ class InstallersDetails(_SashDetailsPanel):
         for cmp_name, page_title in infoTitles:
             gPage = TextArea(self.gNotebook, editable=False,
                              auto_tooltip=False, do_wrap=False)
-            gPage.component_name = cmp_name
-            self.gNotebook.nb_add_page(gPage, page_title)
+            gPage.set_component_name(cmp_name)
+            self.gNotebook.add_page(gPage, page_title)
             self.infoPages.append([gPage,False])
-        self.gNotebook.nb_set_selected_index(settings['bash.installers.page'])
+        self.gNotebook.set_selected_page_index(
+            settings['bash.installers.page'])
         self.gNotebook.on_nb_page_change.subscribe(self.OnShowInfoPage)
         self.sp_panel, espmsPanel = self.checkListSplitter.make_panes(
             vertically=True)
@@ -2723,7 +2731,7 @@ class InstallersDetails(_SashDetailsPanel):
 
     def OnShowInfoPage(self, wx_id, selected_index):
         """A specific info page has been selected."""
-        if wx_id == self.gNotebook.wx_id_: # todo because of BashNotebook event??
+        if wx_id == self.gNotebook.wx_id_(): # todo because of BashNotebook event??
             # todo use the pages directly not the index
             gPage,initialized = self.infoPages[selected_index]
             if self._displayed_installer and not initialized:
@@ -2734,7 +2742,7 @@ class InstallersDetails(_SashDetailsPanel):
         if not self._firstShow and destroy: # save subsplitters
             super(InstallersDetails, self).ClosePanel(destroy)
             settings['bash.installers.page'] = \
-                self.gNotebook.nb_get_selected_index()
+                self.gNotebook.get_selected_page_index()
         self._save_comments()
 
     def _save_comments(self):
@@ -2755,7 +2763,7 @@ class InstallersDetails(_SashDetailsPanel):
             #--Name
             self.gPackage.text_content = fileName.s
             #--Info Pages
-            currentIndex = self.gNotebook.nb_get_selected_index()
+            currentIndex = self.gNotebook.get_selected_page_index()
             for index,(gPage,state) in enumerate(self.infoPages):
                 self.infoPages[index][1] = False
                 if index == currentIndex: self.RefreshInfoPage(index,installer)
@@ -2797,7 +2805,7 @@ class InstallersDetails(_SashDetailsPanel):
         gPage,initialized = self.infoPages[index]
         if initialized: return
         else: self.infoPages[index][1] = True
-        pageName = gPage.component_name
+        pageName = gPage.get_component_name()
         def dumpFiles(files, header=u''):
             if files:
                 buff = StringIO.StringIO()
@@ -2912,13 +2920,13 @@ class InstallersDetails(_SashDetailsPanel):
         """Handle right click in espm list."""
         self.gEspmList.lb_select_index(lb_selection_dex)
         #--Show/Destroy Menu
-        InstallersPanel.espmMenu.new_menu(self, lb_selection_dex)
+        InstallersPanel.espmMenu.popup_menu(self, lb_selection_dex)
 
     def _sub_selection_menu(self, lb_selection_dex):
         """Handle right click in sub-packages list."""
         self.gSubList.lb_select_index(lb_selection_dex)
         #--Show/Destroy Menu
-        InstallersPanel.subsMenu.new_menu(self, lb_selection_dex)
+        InstallersPanel.subsMenu.popup_menu(self, lb_selection_dex)
 
     def _on_check_plugin(self, lb_selection_dex):
         """Handle check/uncheck of item."""
@@ -3195,8 +3203,9 @@ class InstallersPanel(BashTab):
 
 #------------------------------------------------------------------------------
 class ScreensList(balt.UIList):
-    mainMenu = Links() #--Column menu
-    itemMenu = Links() #--Single item menu
+    column_links = Links() #--Column menu
+    context_links = Links() #--Single item menu
+    global_links = OrderedDefaultDict(lambda: Links()) # Global menu
     _shellUI = True
     _editLabels = True
     __ext_group = \
@@ -3321,9 +3330,9 @@ class ScreensPanel(BashTab):
 
 #------------------------------------------------------------------------------
 class BSAList(balt.UIList):
-
-    mainMenu = Links() #--Column menu
-    itemMenu = Links() #--Single item menu
+    column_links = Links() #--Column menu
+    context_links = Links() #--Single item menu
+    global_links = OrderedDefaultDict(lambda: Links()) # Global menu
     _sort_keys = {'File'    : None,
                   'Modified': lambda self, a: self.data_store[a].mtime,
                   'Size'    : lambda self, a: self.data_store[a].size,
@@ -3416,8 +3425,9 @@ class BSAPanel(BashTab):
 
 #------------------------------------------------------------------------------
 class PeopleList(balt.UIList):
-    mainMenu = Links()
-    itemMenu = Links()
+    column_links = Links()
+    context_links = Links()
+    global_links = OrderedDefaultDict(lambda: Links()) # Global menu
     icons = karmacons
     _sunkenBorder = False
     _recycle = False
@@ -3570,7 +3580,7 @@ class _Tab_Link(AppendableLink, CheckLink, EnabledLink):
             if not panel:
                 panel = globals()[className](Link.Frame.notebook)
                 tabInfo[self.tabKey][2] = panel
-                _widget_to_panel[panel.wx_id_] = panel
+                _widget_to_panel[panel.wx_id_()] = panel
             if insertAt > Link.Frame.notebook.GetPageCount():
                 Link.Frame.notebook.AddPage(panel._native_widget,title)
             else:
@@ -3630,7 +3640,7 @@ class BashNotebook(wx.Notebook, balt.TabDragMixin):
                 item = panel(self)
                 self.AddPage(item._native_widget, title)
                 tabInfo[page][2] = item
-                _widget_to_panel[item.wx_id_] = item
+                _widget_to_panel[item.wx_id_()] = item
             except:
                 if page == 'Mods':
                     deprint(u"Fatal error constructing '%s' panel." % title)
@@ -3675,7 +3685,7 @@ class BashNotebook(wx.Notebook, balt.TabDragMixin):
         tabId = self.HitTest(pos)
         if tabId != wx.NOT_FOUND and tabId[0] != wx.NOT_FOUND:
             menu = self.tabLinks(Links())
-            menu.new_menu(self, None)
+            menu.popup_menu(self, None)
         else:
             event.Skip()
 
@@ -3716,11 +3726,10 @@ class BashNotebook(wx.Notebook, balt.TabDragMixin):
 #------------------------------------------------------------------------------
 class BashStatusBar(DnDStatusBar):
     #--Class Data
-    SettingsMenu = Links()
     obseButton = None
     laaButton = None
 
-    def UpdateIconSizes(self):
+    def UpdateIconSizes(self, skip_refresh=False):
         self.buttons = [] # will be populated with _displayed_ gButtons - g ?
         order = settings['bash.statusbar.order']
         orderChanged = False
@@ -3761,9 +3770,10 @@ class BashStatusBar(DnDStatusBar):
         # Update settings
         if orderChanged: settings.setChanged('bash.statusbar.order')
         if hideChanged: settings.setChanged('bash.statusbar.hide')
-        self._do_refresh(refresh_icon_size=True)
+        if not skip_refresh:
+            self.refresh_status_bar(refresh_icon_size=True)
 
-    def HideButton(self,button):
+    def HideButton(self, button, skip_refresh=False):
         if button in self.buttons:
             # Find the BashStatusBar_Button instance that made it
             link = self.GetLink(button=button)
@@ -3772,9 +3782,10 @@ class BashStatusBar(DnDStatusBar):
                 self.buttons.remove(button)
                 settings['bash.statusbar.hide'].add(link.uid)
                 settings.setChanged('bash.statusbar.hide')
-                self._do_refresh()
+                if not skip_refresh:
+                    self.refresh_status_bar()
 
-    def UnhideButton(self,link):
+    def UnhideButton(self, link, skip_refresh=False):
         uid = link.uid
         settings['bash.statusbar.hide'].discard(uid)
         settings.setChanged('bash.statusbar.hide')
@@ -3797,7 +3808,8 @@ class BashStatusBar(DnDStatusBar):
                     insertBefore = i
                     break
             self.buttons.insert(insertBefore,button)
-        self._do_refresh()
+        if not skip_refresh:
+            self.refresh_status_bar()
 
     def GetLink(self,uid=None,index=None,button=None):
         """Get the Link object with a specific uid,
@@ -3814,7 +3826,7 @@ class BashStatusBar(DnDStatusBar):
                     return link
         return None
 
-    def _do_refresh(self, refresh_icon_size=False):
+    def refresh_status_bar(self, refresh_icon_size=False):
         """Updates status widths and the icon sizes, if refresh_icon_size is
         True. Also propagates resizing events.
 
@@ -3856,8 +3868,10 @@ class BashFrame(WindowFrame):
                                         icon_bundle=Resources.bashRed,
                                         sizes_dict=bass.settings)
         self.set_bash_frame_title()
-        #--Status Bar
+        # Status Bar & Global Menu
         self._native_widget.SetStatusBar(BashStatusBar(self._native_widget))
+        self.global_menu = None
+        self.set_global_menu(GlobalMenu())
         #--Notebook panel
         # attributes used when ini panel is created (warn for missing game ini)
         self.oblivionIniCorrupted = u''
@@ -3922,8 +3936,8 @@ class BashFrame(WindowFrame):
             title = bush.game.altName + u' %s%s'
         else:
             title = u'Wrye Bash %s%s '+_(u'for')+u' '+bush.game.displayName
-        title %= (bass.AppVersion, (u' ' + _(u'(Standalone)')) if settings[
-                      'bash.standalone'] else u'')
+        title %= (bass.AppVersion, (u' ' + _(u'(Standalone)'))
+                                    if bass.is_standalone else u'')
         if CBashApi.Enabled:
             title += u', CBash %s: ' % (CBashApi.VersionText,)
         else:
@@ -4189,6 +4203,19 @@ class BashFrame(WindowFrame):
         if BashFrame.bsaList:
             BashFrame.bsaList.RefreshUI(focus_list=focus_list)
 
+    # Global Menu API
+    def set_global_menu(self, new_global_menu):
+        """Changes the global menu to the specified one."""
+        self.global_menu = new_global_menu
+        self.refresh_global_menu_visibility()
+
+    def refresh_global_menu_visibility(self):
+        """Hides or shows the global menu, depending on the setting the user
+        chose."""
+        self._native_widget.SetMenuBar(
+            self.global_menu._native_widget if bass.settings[
+                u'bash.show_global_menu'] else None)
+
 #------------------------------------------------------------------------------
 class BashApp(wx.App):
     """Bash Application class."""
@@ -4302,6 +4329,15 @@ def InitSettings(): # this must run first !
     balt.sizes = bass.settings.getChanged('bash.window.sizes',{})
     settings = bass.settings
     settings.loadDefaults(settingDefaults)
+    # Import/Export DLL permissions was broken and stored DLLs with a ':'
+    # appended, simply drop those here (worst case some people will have to
+    # re-confirm that they want to install a DLL). Note we have to do this here
+    # because init_global_skips below bakes them into Installer._{bad,good}Dlls
+    for key_suffix in (u'goodDlls', u'badDlls'):
+        dict_key = u'bash.installers.' + key_suffix
+        bass.settings[dict_key] = {k: v for k, v
+                                   in bass.settings[dict_key].iteritems()
+                                   if not k.endswith(u':')}
     bosh.bain.Installer.init_global_skips() # must be after loadDefaults - grr #178
     bosh.bain.Installer.init_attributes_process()
     # Plugin encoding used to decode mod string fields
@@ -4309,8 +4345,6 @@ def InitSettings(): # this must run first !
     #--Wrye Balt
     settings['balt.WryeLog.temp'] = bass.dirs[u'saveBase'].join(u'WryeLogTemp.html')
     settings['balt.WryeLog.cssDir'] = bass.dirs[u'mopy'].join(u'Docs')
-    #--StandAlone version?
-    settings['bash.standalone'] = hasattr(sys,'frozen')
     initPatchers()
 
 def InitImages():

@@ -166,7 +166,9 @@ settingDefaults = { ##: (178) belongs to bosh (or better to a settings package)
     'bash.frameMax': False, # True if maximized
     'bash.page':1,
     'bash.useAltName':True,
+    u'bash.show_global_menu': True,
     'bash.pluginEncoding': 'cp1252',    # Western European
+    u'bash.show_internal_keys': False,
     #--Colors
     'bash.colors': {
         #--Common Colors
@@ -200,6 +202,10 @@ settingDefaults = { ##: (178) belongs to bosh (or better to a settings package)
     },
     #--BSA Redirection
     'bash.bsaRedirection':True,
+    # Wrye Bash: Localization
+    u'bash.l10n.editor.param_fmt': u'%s',
+    u'bash.l10n.editor.path': u'',
+    u'bash.l10n.editor.rename_to_po': False,
     #--Wrye Bash: Load Lists
     'bash.loadLists.data': {}, ##: to be removed
     # Wrye Bash: Load Order
@@ -240,6 +246,7 @@ settingDefaults = { ##: (178) belongs to bosh (or better to a settings package)
         'Files': _(u'Files'),
         'Group': _(u'Group'),
         'Header': _(u'Header'),
+        u'Indices':_(u'Indices'),
         'Installer':_(u'Installer'),
         'Karma': _(u'Karma'),
         'Load Order': _(u'Load Order'),
@@ -258,8 +265,8 @@ settingDefaults = { ##: (178) belongs to bosh (or better to a settings package)
         },
     #--Wrye Bash: Masters
     'bash.masters.cols': ['File', 'Num', 'Current Order'],
-    'bash.masters.esmsFirst': 1,
-    'bash.masters.selectedFirst': 0,
+    u'bash.masters.esmsFirst': False,
+    u'bash.masters.selectedFirst': False,
     'bash.masters.sort': 'Num',
     'bash.masters.colReverse': {},
     'bash.masters.colWidths': {
@@ -335,8 +342,8 @@ settingDefaults = { ##: (178) belongs to bosh (or better to a settings package)
     'bash.mods.auto_flag_esl': True,
     'bash.mods.cols': ['File', 'Load Order', 'Installer', 'Modified', 'Size',
                        'Author', 'CRC'],
-    'bash.mods.esmsFirst': 1,
-    'bash.mods.selectedFirst': 0,
+    u'bash.mods.esmsFirst': False,
+    u'bash.mods.selectedFirst': False,
     'bash.mods.sort': 'Load Order',
     'bash.mods.colReverse': {},
     'bash.mods.colWidths': {
@@ -345,6 +352,7 @@ settingDefaults = { ##: (178) belongs to bosh (or better to a settings package)
         'Group':10,
         'Installer':100,
         'Load Order':25,
+        u'Indices':50,
         'Modified':135,
         'Rating':10,
         'Size':75,
@@ -416,6 +424,9 @@ settingDefaults[bush.game.Xe.xe_key_prefix + u'.skip_bsas'] = False
 if bush.game.Esp.check_master_sizes:
     settingDefaults[u'bash.colors'][u'mods.bkgd.size_mismatch'] = (255, 238,
                                                                    217)
+
+if bush.game.has_esl: # Enable Indices by default for ESL games
+    settingDefaults[u'bash.mods.cols'].insert(2, u'Indices')
 
 # Images ----------------------------------------------------------------------
 #------------------------------------------------------------------------------
