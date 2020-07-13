@@ -37,7 +37,6 @@ class Fallout4GameInfo(GameInfo):
     version_detect_file = [u'Fallout4.exe']
     master_file = u'Fallout4.esm'
     iniFiles = [u'Fallout4.ini', u'Fallout4Prefs.ini', u'Fallout4Custom.ini', ]
-    pklfile = u'Fallout4_ids.pkl'
     masterlist_dir = u'Fallout4'
     regInstallKeys = (u'Bethesda Softworks\\Fallout4', u'Installed Path')
     nexusUrl = u'https://www.nexusmods.com/fallout4/'

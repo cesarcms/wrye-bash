@@ -555,6 +555,8 @@
         RMDir /r "${Path}\Mopy\bash\patcher"
         ; As of 307, Wizard Images have been moved to bash/images/Wizard Images
         RMDir /r "${Path}\Mopy\Wizard Images"
+        ; As of 307, game settings are no longer injected
+        RMDir /r "${Path}\Mopy\bash\db"
     !macroend
 
 

@@ -67,9 +67,6 @@ class GameInfo(object):
     # INI files that should show up in the INI Edits tab
     #  Example: [u'Oblivion.ini']
     iniFiles = []
-    # The pickle file for this game.  Holds encoded GMST IDs from the big list
-    # below
-    pklfile = u'*GAMENAME*_ids.pkl'
     # The directory containing the masterlist for this game, relative to
     # 'Mopy/Bash Patches'
     masterlist_dir = u''
@@ -381,10 +378,6 @@ class GameInfo(object):
     # names for the record types. Used in save editing code.
     save_rec_types = {}
 
-    #--List of GMST's in the main plugin (Oblivion.esm) that have 0x00000000
-    #  as the form id.  Any GMST as such needs it Editor Id listed here.
-    gmstEids = []
-
     """
     GLOB record tweaks used by patcher.patchers.multitweak_settings.GmstTweaker
 
@@ -630,14 +623,13 @@ class GameInfo(object):
         u'cc_valid_types', u'cc_passes', u'cellAutoKeys', u'cell_float_attrs',
         u'cellRecAttrs', u'cellRecFlags', u'condition_function_data',
         u'default_eyes', u'destructible_types', u'example_weapon_name',
-        u'generic_av_effects', u'getvatsvalue_index', u'gmstEids',
-        u'graphicsFidTypes', u'graphicsLongsTypes', u'graphicsModelAttrs',
-        u'graphicsTypes', u'hostile_effects', u'inventoryTypes',
-        u'keywords_types', u'listTypes', u'mgef_basevalue', u'mgef_name',
-        u'mgef_school', u'names_tweaks', u'namesTypes', u'nirnroots',
-        u'nonplayable_biped_flags', u'not_playable_flag',
-        u'object_bounds_types', u'pricesTypes', u'record_type_name',
-        u'relations_attrs', u'relations_csv_header',
+        u'generic_av_effects', u'getvatsvalue_index', u'graphicsFidTypes',
+        u'graphicsLongsTypes', u'graphicsModelAttrs', u'graphicsTypes',
+        u'hostile_effects', u'inventoryTypes', u'keywords_types', u'listTypes',
+        u'mgef_basevalue', u'mgef_name', u'mgef_school', u'names_tweaks',
+        u'namesTypes', u'nirnroots', u'nonplayable_biped_flags',
+        u'not_playable_flag', u'object_bounds_types', u'pricesTypes',
+        u'record_type_name', u'relations_attrs', u'relations_csv_header',
         u'relations_csv_row_format', u'save_rec_types', u'scripts_types',
         u'soundsLongsTypes', u'soundsTypes', u'spell_stats_attrs',
         u'static_attenuation_rec_type', u'staff_condition', u'statsHeaders',
