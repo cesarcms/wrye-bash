@@ -251,6 +251,10 @@ class _ListPatcherPanel(_PatcherPanel):
     # Only for CBash patchers
     unloadedText = u'\n\n' + _(u'Any non-active, non-merged mods in the'
                                u' following list will be IGNORED.')
+    # If True, add CSV files matching the auto keys for this patcher panel to
+    # the list
+    supports_csv = False
+
     @property
     def patcher_text(self):
         pt = self.__class__._patcher_txt
@@ -458,11 +462,12 @@ class _ListPatcherPanel(_PatcherPanel):
     def getAutoItems(self):
         """Returns list of items to be used for automatic configuration."""
         autoItems = self._get_auto_mods()
-        reFile = re.compile(
-            u'_(' + (u'|'.join(self.__class__.autoKey)) + r')\.csv$', re.U)
-        for fileName in sorted(patches_set()):
-            if reFile.search(fileName.s):
-                autoItems.append(fileName)
+        if self.supports_csv:
+            reFile = re.compile(
+                u'_(' + (u'|'.join(self.__class__.autoKey)) + r')\.csv$', re.U)
+            for fileName in sorted(patches_set()):
+                if reFile.search(fileName.s):
+                    autoItems.append(fileName)
         return autoItems
 
     def _get_auto_mods(self):
@@ -777,10 +782,6 @@ class _DoublePatcherPanel(_TweakPatcherPanel, _ListPatcherPanel):
         return gConfigPanel
 
     #--Config Phase -----------------------------------------------------------
-    def getAutoItems(self):
-        """Returns list of items to be used for automatic configuration."""
-        return self._get_auto_mods()
-
     def _log_config(self, conf, config, clip, log):
         _ListPatcherPanel._log_config(self, conf, config, clip, log)
         log.setHeader(u'== ' + self.tweak_label)
@@ -919,6 +920,10 @@ class _GmstTweakerPanel(_TweakPatcherPanel):
     # CONFIG DEFAULTS
     default_isEnabled = True
 
+class _AListPanelCsv(_ListPatcherPanel):
+    """Base class for list panels that support CSV files as well."""
+    supports_csv = True
+
 #------------------------------------------------------------------------------
 # GUI Patcher classes
 # Do _not_ rename the gui patcher classes or you will break existing BP configs
@@ -1023,7 +1028,7 @@ class CBash_CellImporter(_ACellImporter):
     patcher_type.autoKey = autoKey ##: autoKey hack
 
 # -----------------------------------------------------------------------------
-class _AImportFactions(_ImporterPatcherPanel):
+class _AImportFactions(_ImporterPatcherPanel, _AListPanelCsv):
     """Import factions to creatures and NPCs."""
     patcher_name = _(u'Import Factions')
     _patcher_txt = _(u'Import factions from source mods/files.')
@@ -1035,7 +1040,7 @@ class CBash_ImportFactions(_AImportFactions):
     patcher_type = _cbash_importers.CBash_ImportFactions
 
 # -----------------------------------------------------------------------------
-class _AImportRelations(_ImporterPatcherPanel):
+class _AImportRelations(_ImporterPatcherPanel, _AListPanelCsv):
     """Import faction relations to factions."""
     patcher_name = _(u'Import Relations')
     _patcher_txt = _(u'Import relations from source mods/files.')
@@ -1080,7 +1085,7 @@ class CBash_ImportActorsSpells(_AImportActorsSpells):
     patcher_type = _cbash_importers.CBash_ImportActorsSpells
 
 # -----------------------------------------------------------------------------
-class _ANamesPatcher(_ImporterPatcherPanel):
+class _ANamesPatcher(_ImporterPatcherPanel, _AListPanelCsv):
     """Import names from source mods/files."""
     patcher_name = _(u'Import Names')
     _patcher_txt = _(u'Import names from source mods/files.')
@@ -1127,7 +1132,7 @@ class CBash_SoundPatcher(_ASoundPatcher):
     patcher_type = _cbash_importers.CBash_SoundPatcher
 
 # -----------------------------------------------------------------------------
-class _AStatsPatcher(_ImporterPatcherPanel):
+class _AStatsPatcher(_ImporterPatcherPanel, _AListPanelCsv):
     """Import stats from mod file."""
     patcher_name = _(u'Import Stats')
     _patcher_txt = _(u'Import stats from any pickupable items from source '
@@ -1153,7 +1158,7 @@ class CBash_ImportScripts(_AImportScripts):
     patcher_type = _cbash_importers.CBash_ImportScripts
 
 # -----------------------------------------------------------------------------
-class _ASpellsPatcher(_ImporterPatcherPanel):
+class _ASpellsPatcher(_ImporterPatcherPanel, _AListPanelCsv):
     """Import spell changes from mod files."""
     patcher_name = _(u'Import Spell Stats')
     _patcher_txt = _(u'Import stats from any spells / actor effects from '
@@ -1250,7 +1255,7 @@ class CBash_TweakActors(_TweakPatcherPanel):
     patcher_type = multitweak_actors.CBash_TweakActors
 
 # Patchers 40 -----------------------------------------------------------------
-class _AUpdateReferences(_ListPatcherPanel):
+class _AUpdateReferences(_AListPanelCsv):
     """Imports Form Id replacers into the Bashed Patch."""
     patcher_name = _(u'Replace Form IDs')
     _patcher_txt = _(u'Imports Form Id replacers from csv files into the '
