@@ -1377,6 +1377,10 @@ C.Location, -C.LockList
             <td>ScriptContents</td>
             <td>Dangerous tag that was never fully implemented.</td>
         </tr>
+        <tr>
+            <td>Spells</td>
+            <td>Use SpellStats instead.</td>
+        </tr>
     </tbody>
 </table>
 <table>
@@ -1861,6 +1865,16 @@ C.Location, -C.LockList
             </td>
         </tr>
         <tr>
+            <td>Derel</td>
+            <td>Deletes faction relationships.</td>
+            <td>Removal of a (XNAM) Faction Relationship from a (FACT) Faction record.
+                Does nothing unless the <code>Relations</code> tag is also applied.
+                <br>
+                <br>
+                <strong>Not available for Fallout 4 &amp; not functional for CBash in Oblivion.</strong>
+            </td>
+        </tr>
+        <tr>
             <td>Destructible</td>
             <td>Modifies destructible records.</td>
             <td>See the game-specific sections below for record types:
@@ -1878,8 +1892,8 @@ C.Location, -C.LockList
         </tr>
         <tr>
             <td>Factions</td>
-            <td>Changes Creature or Non-Player Character factions.</td>
-            <td>Addition or removal of a faction, or change of faction rank in Non-Player Character (NPC_) or Creature (CREA) records.
+            <td>Changes Creature (<strong>Oblivion, Fallout 3 &amp; Fallout&colon; New Vegas only</strong>) or Non-Player Character factions.</td>
+            <td>Addition or removal of a faction, or change of faction rank in (NPC_) Non-Player Character or (CREA) Creature (<strong>Oblivion, Fallout 3 &amp; Fallout&colon; New Vegas only</strong>) records.
                 <ul>
                     <li>Factions
                         <ul>
@@ -1890,7 +1904,7 @@ C.Location, -C.LockList
                 </ul>
                 <br>
                 <br>
-                <strong>Oblivion, Nehrim&colon; At Fate's Edge, Fallout 3 &amp; Fallout&colon; New Vegas only.</strong>
+                <strong>Not available for Fallout 4.</strong>
             </td>
         </tr>
         <tr>
@@ -2020,6 +2034,21 @@ C.Location, -C.LockList
             </td>
         </tr>
         <tr>
+            <td>NPC.AIPackageOverrides</td>
+            <td>Changes </td>
+            <td>The following (NPC_) Non-Player Character subrecords:
+                <ul>
+                    <li>(SPOR) Spectator Override Package List</li>
+                    <li>(OCOR) Observe Dead Body Override Package List</li>
+                    <li>(GWOR) Guard Warn Override Package List</li>
+                    <li>(ECOR) Combat Override Package List</li>
+                </ul>
+                <br>
+                <strong>Skyrim, Enderal&colon; Forgotten Stories &amp;
+                    Skyrim&colon; Special Edition only.</strong>
+            </td>
+        </tr>
+        <tr>
             <td>NPC.Class</td>
             <td>Changes the classes of NPCs.</td>
             <td>The (CNAM) Class subrecord of (NPC_) Non-Player Character records.
@@ -2031,7 +2060,7 @@ C.Location, -C.LockList
         <tr>
             <td>Npc.EyesOnly</td>
             <td>Modifies Non-Player Character eyes.</td>
-            <td>The Eyes (ENAM) subrecord of Non-Player Character (NPC_) records.
+            <td>The (ENAM) Eyes subrecord of (NPC_) Non-Player Character records.
                 <br>
                 <br>
                 <strong>Oblivion, Nehrim&colon; At Fate's Edge, Fallout 3 &amp; Fallout&colon; New Vegas only.</strong>
@@ -2040,7 +2069,7 @@ C.Location, -C.LockList
         <tr>
             <td>Npc.HairOnly</td>
             <td>Modifies Non-Player Character hair.</td>
-            <td>The Hair (HNAM) subrecord of Non-Player Character (NPC_) records.
+            <td>The (HNAM) Hair subrecord of (NPC_) Non-Player Character records.
                 <br>
                 <br>
                 <strong>Oblivion, Nehrim&colon; At Fate's Edge, Fallout 3 &amp; Fallout&colon; New Vegas only.</strong>
@@ -2058,7 +2087,7 @@ C.Location, -C.LockList
         <tr>
             <td>NpcFaces</td>
             <td>Modifies Non-Player Character faces.</td>
-            <td>The following Non-Player Character (NPC_) subrecords:
+            <td>The following (NPC_) Non-Player Character subrecords:
                 <ul>
                     <li>FaceGen Data
                         <ul>
@@ -2080,7 +2109,7 @@ C.Location, -C.LockList
             <td>NpcFacesForceFullImport</td>
             <td>Modifies Non-Player Character faces, and you wish to import the
                 unmodified subrecords as well as the modified subrecords.</td>
-            <td>The following Non-Player Character (NPC_) subrecords:
+            <td>The following (NPC_) Non-Player Character subrecords:
                 <ul>
                     <li>FaceGen Data
                         <ul>
@@ -2115,6 +2144,21 @@ C.Location, -C.LockList
                 </ul>
                 <br>
                 <strong>Not available for Oblivion &amp; Nehrim&colon; At Fate's Edge.</strong>
+            </td>
+        </tr>
+        <tr>
+            <td>Relations</td>
+            <td>Changes faction relationships.</td>
+	    <td>Adds or modifies the (XNAM) Relation subrecords of (FACT) Faction records. Use <code>Derel</code> for removals.
+                <ul>
+                    <li>Faction</li>
+                    <li>Modifier</li>
+                    <li>Group Combat Reaction &mdash;
+                    <strong>Not available for Oblivion.</strong></li>
+                </ul>
+                <br>
+                <br>
+                <strong>Not available for Fallout 4.</strong>
             </td>
         </tr>
         <tr>
@@ -2719,16 +2763,6 @@ C.Location, -C.LockList
                             <li>(ICON) Icon Filename</li>
                         </ul>
                     </li>
-                </ul>
-            </td>
-        </tr>
-        <tr>
-            <td>Relations</td>
-            <td>Changes faction relationships.</td>
-            <td>Adds, Removes or Modifies the (XNAM) Relation subrecord of Relations in Faction (FACT) records.
-                <ul>
-                    <li>Faction</li>
-                    <li>Modifier</li>
                 </ul>
             </td>
         </tr>
